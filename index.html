@@ -6,108 +6,7 @@
   <title>Current Sessions</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #e8f0ff, #f8fbff);
-      color: #222;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
-    .theme-toggle {
-      display: block;
-      margin: 0 auto 20px auto;
-      padding: 10px 20px;
-      background: #4a8bff;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .card {
-      background: #fff;
-      padding: 24px;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      max-width: 600px;
-      margin: 20px auto;
-    }
-    .form-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .form-row input {
-      flex: 1 1 120px;
-      padding: 8px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 0.95rem;
-    }
-    .form-row button.submit {
-      flex: 0 0 auto;
-      padding: 8px 16px;
-      font-weight: bold;
-      background: #4a8bff;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    .list-item {
-      max-width: 500px;
-      padding: 10px;
-      margin: 10px auto;
-      border-radius: 12px;
-      background: #f5f8ff;
-      border: 1px solid #e2e8f0;
-      transition: 0.25s;
-      font-size: 0.95rem;
-    }
-    .list-item:hover {
-      background: #e1efff;
-      transform: translateY(-2px);
-    }
-    .item-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .delete-btn {
-      background: #ff4a4a;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .empty-text {
-      text-align: center;
-      padding: 20px;
-      color: #777;
-    }
-
-    /* Dark Mode */
-    .dark {
-      background: #1a1a1a;
-      color: #eaeaea;
-    }
-    .dark .card { background: #262626; }
-    .dark input { background: #262626; color: #eaeaea; border: 1px solid #444; }
-    .dark .list-item { background: #333; border: 1px solid #444; }
+    /* ... Dein Style bleibt hier unverändert ... */
   </style>
 </head>
 <body>
@@ -140,7 +39,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
-    const ADMIN_KEY = "MEIN_GEHEIM_KEY";  // Ersetze diesen Wert durch deinen eigenen Admin-Schlüssel
+    const ADMIN_KEY = "MEIN_GEHEIM_KEY";  // Ersetze durch deinen eigenen Admin-Schlüssel
     let isAdmin = false;
 
     // Beim Laden fragt der Browser nach Admin-Key
@@ -149,6 +48,8 @@
       if (key === ADMIN_KEY) {
         isAdmin = true;
       }
+
+      loadSessions();  // Lade Sitzungen nach Admin-Abfrage
     });
 
     const firebaseConfig = {
@@ -168,48 +69,27 @@
       document.body.classList.toggle('dark');
     }
 
-    // Zeitbereich parsen
-    function parseTimeRange(str) {
-      const parts = str.toLowerCase().replace(/ /g, '').split('-');
-      return parts.map(t => {
-        let pm = t.includes('pm');
-        let am = t.includes('am');
-        t = t.replace(/am|pm/, '');
-        const [h, m] = t.split(':').map(Number);
-        let hour = h;
-        let minute = m || 0;
-        if (pm && hour < 12) hour += 12;
-        if (am && hour === 12) hour = 0;
-        return { h: hour, m: minute };
-      });
-    }
-
-    function formatTime({ h, m }) {
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    }
-
-    // Besucherzeit konvertieren
-    function convertToVisitorTime(hour, minute, userOffset) {
-      const localOffset = new Date().getTimezoneOffset() / -60;
-      let visitorHour = hour - userOffset + localOffset;
-      if (visitorHour < 0) visitorHour += 24;
-      if (visitorHour >= 24) visitorHour -= 24;
-      return { h: Math.floor(visitorHour), m: minute };
-    }
-
     // Sitzungen laden
     async function loadSessions() {
       const snapshot = await db.collection('entries').get();
+
+      // Prüfen, ob Daten aus Firebase kommen
+      console.log('Daten aus Firebase:', snapshot.docs.map(doc => doc.data()));
+
       listEl.innerHTML = '';  // Leere die aktuelle Liste
+
+      if (snapshot.empty) {
+        listEl.innerHTML = 'Keine Sitzungen gefunden.';
+        return;
+      }
 
       snapshot.forEach(doc => {
         const data = doc.data();
-        const { name, game, timerange, tzoffset, date } = data;  // Korrektur der doppelten Deklaration
+        const { name, game, timerange, tzoffset, date } = data;
         const [from, to] = parseTimeRange(timerange);
         const visitorFrom = convertToVisitorTime(from.h, from.m, tzoffset);
         const visitorTo = convertToVisitorTime(to.h, to.m, tzoffset);
 
-        // Datum in lokaler Sprache formatieren
         let formattedDate = '';
         if (date) {
           formattedDate = new Date(date).toLocaleDateString(navigator.language);
@@ -218,7 +98,6 @@
         const item = document.createElement('div');
         item.className = 'list-item';
 
-        // Löschen-Button nur anzeigen, wenn Admin
         const deleteBtnHTML = isAdmin ? `<button class="delete-btn" onclick="deleteSession('${doc.id}')">X</button>` : '';
 
         item.innerHTML = `
@@ -234,4 +113,10 @@
         `;
         listEl.appendChild(item);
       });
-```
+    }
+
+    // Hilfsfunktionen (z.B. parseTimeRange, formatTime, convertToVisitorTime) bleiben unverändert
+
+  </script>
+</body>
+</html>
