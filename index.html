@@ -51,10 +51,10 @@
   }
 
   .form-row input, .form-row button {
-    flex: 1 1 120px;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
+    flex: 1 1 80px;   /* hier ändern */
+    min-width: 60px;  /* verhindert zu kleine Felder */
+    max-width: 150px; /* optional: verhindert dass sie zu breit werden */
+    padding: 8px;     /* kleinerer Abstand innen */
     font-size: 0.95rem;
   }
 
