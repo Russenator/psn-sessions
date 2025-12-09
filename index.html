@@ -241,7 +241,7 @@ async function addSession(){
 // Delete session
 async function deleteSession(id, key){
   if(key !== ADMIN_KEY){
-    alert("Nur Admin kann löschen!");
+    alert("Only admin can delete!");
     return;
   }
   await db.collection('entries').doc(id).delete();
