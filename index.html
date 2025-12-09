@@ -258,8 +258,8 @@ async function deleteSession(id, key) {
 // Flatpickr: automatische Browser-Locale
 const userLang = navigator.language || navigator.userLanguage;
 let localeOption = 'default';
-if(userLang.startsWith('de')) localeOption = Flatpickr.l10ns.de;
-if(userLang.startsWith('en')) localeOption = Flatpickr.l10ns.en;
+if(userLang.startsWith('de')) localeOption = flatpickr.l10ns.de;
+if(userLang.startsWith('en')) localeOption = flatpickr.l10ns.en;
 
 flatpickr("#date", {
   dateFormat: "Y-m-d",
