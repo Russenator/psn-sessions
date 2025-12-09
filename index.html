@@ -1,4 +1,3 @@
-<!-- rebuild -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +8,7 @@
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 
-<!-- Flatpickr (für modernen Kalender) -->
+<!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <style>
@@ -21,6 +20,7 @@
     padding: 20px;
   }
   h1 { text-align: center; font-size: 2rem; margin-bottom: 20px; }
+
   .theme-toggle {
     display: block;
     margin: 0 auto 20px auto;
@@ -32,49 +32,62 @@
     cursor: pointer;
     font-weight: bold;
   }
+
   .card {
     background: #fff;
     padding: 24px;
     border-radius: 20px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-    max-width: 600px;
+    max-width: 700px;
     margin: 20px auto;
   }
-  input, button {
-    width: 100%;
-    padding: 12px;
+
+  /* Form Layout */
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 10px;
+  }
+
+  .form-row input, .form-row button {
+    flex: 1 1 120px;  /* Basisbreite 120px, wächst wenn Platz */
+    padding: 10px;
     border-radius: 10px;
     border: 1px solid #ccc;
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
-  button.submit {
+
+  .form-row button.submit {
     background: #4a8bff;
     color: white;
     border: none;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
   }
+
   .list-item {
-    padding: 16px;
+    padding: 14px;
     background: #f5f8ff;
     border-radius: 14px;
     margin-top: 12px;
     border: 1px solid #e2e8f0;
     transition: 0.25s;
   }
+
   .list-item:hover { background: #e1efff; transform: translateY(-2px); }
+
   .delete-btn {
     margin-top: 10px;
     background: #ff4a4a;
     color: white;
     border: none;
-    padding: 10px;
+    padding: 8px;
     border-radius: 10px;
     cursor: pointer;
     width: 100%;
   }
+
   .empty-text { text-align: center; padding: 20px; color: #777; }
 
   /* Dark Theme */
@@ -89,23 +102,10 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     font-family: 'Inter', sans-serif;
   }
-  .flatpickr-month {
-    background-color: #4a8bff;
-    color: white;
-    border-radius: 10px 10px 0 0;
-  }
-  .flatpickr-weekday {
-    color: #333;
-    font-weight: 600;
-  }
-  .flatpickr-day.selected {
-    background: #4a8bff;
-    color: white;
-    border-radius: 50%;
-  }
-  .flatpickr-day.today {
-    border: 1px solid #4a8bff;
-  }
+  .flatpickr-month { background-color: #4a8bff; color: white; border-radius: 10px 10px 0 0; }
+  .flatpickr-weekday { color: #333; font-weight: 600; }
+  .flatpickr-day.selected { background: #4a8bff; color: white; border-radius: 50%; }
+  .flatpickr-day.today { border: 1px solid #4a8bff; }
 </style>
 </head>
 <body>
@@ -113,21 +113,18 @@
 <h1>Current Sessions</h1>
 <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 
-<!-- Add New Session -->
 <div class="card">
   <h2>Add New Session</h2>
-  <input id="name" placeholder="Name (PSN)" />
-  <input id="game" placeholder="Game" />
-  <input id="timerange" placeholder="Time (e.g., 6pm-8pm)" />
-
-  <!-- Kalenderfeld -->
-  <input id="date" placeholder="Select Date" />
-
-  <input id="tzoffset" placeholder="UTC offset (e.g., +1)" />
-  <button class="submit" onclick="addSession()">Save</button>
+  <div class="form-row">
+    <input id="name" placeholder="Name (PSN)" />
+    <input id="game" placeholder="Game" />
+    <input id="timerange" placeholder="Time (e.g., 6pm-8pm)" />
+    <input id="date" placeholder="Select Date" />
+    <input id="tzoffset" placeholder="UTC offset" />
+    <button class="submit" onclick="addSession()">Save</button>
+  </div>
 </div>
 
-<!-- Availability List -->
 <div class="card">
   <h2>Availability List</h2>
   <div id="list">Loading...</div>
@@ -137,8 +134,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<!-- Flatpickr JS -->
+<!-- Flatpickr JS + L10n -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/en.js"></script>
 
 <script>
 // Firebase Config
@@ -181,6 +180,12 @@ function convertToVisitorTime(hour, minute, userOffset) {
   return {h: Math.floor(visitorHour), m: minute};
 }
 
+// Datum formatieren nach Browser-Locale
+function formatDateLocale(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString();
+}
+
 // Load sessions
 async function loadSessions() {
   const snapshot = await db.collection('entries').get();
@@ -199,7 +204,7 @@ async function loadSessions() {
     const item = document.createElement('div');
     item.className = 'list-item';
     item.innerHTML = `<strong>${name}</strong> — ${game}<br>
-      Date: <b>${date}</b><br>
+      Date: <b>${formatDateLocale(date)}</b><br>
       User Time: ${timerange} (UTC${tzoffset>=0?'+':''}${tzoffset})<br>
       Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
       <br><button class="delete-btn" onclick="deleteSession('${doc.id}')">Delete</button>`;
@@ -235,13 +240,19 @@ async function deleteSession(id) {
   loadSessions();
 }
 
-// Initialize Flatpickr
+// Flatpickr: automatische Browser-Locale
+const userLang = navigator.language || navigator.userLanguage;
+let localeOption = 'default';
+if(userLang.startsWith('de')) localeOption = Flatpickr.l10ns.de;
+if(userLang.startsWith('en')) localeOption = Flatpickr.l10ns.en;
+
 flatpickr("#date", {
   dateFormat: "Y-m-d",
   altInput: true,
   altFormat: "d.m.Y",
   allowInput: false,
   animate: true,
+  locale: localeOption,
 });
 
 loadSessions();
