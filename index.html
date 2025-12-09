@@ -96,7 +96,7 @@
   .dark input { background: #262626; color: #eaeaea; border: 1px solid #444; }
   .dark .list-item { background: #333; border: 1px solid #444; }
 
-  /* Flatpickr Styling für moderner Windows 11 Look */
+  /* Flatpickr Styling */
   .flatpickr-calendar {
     border-radius: 14px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
@@ -118,7 +118,7 @@
   <div class="form-row">
     <input id="name" placeholder="Name (PSN)" />
     <input id="game" placeholder="Game" />
-    <input id="timerange" placeholder="Time (e.g., 10-18, 8am-6pm)" />
+    <input id="timerange" placeholder="Time (e.g., 6pm-8pm)" />
     <input id="date" placeholder="Select Date" />
     <input id="tzoffset" placeholder="UTC offset" />
     <button class="submit" onclick="addSession()">Save</button>
@@ -140,6 +140,9 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/en.js"></script>
 
 <script>
+// Admin-Key: nur du kennst ihn
+const ADMIN_KEY = "MEIN_GEHEIM_KEY";
+
 // Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
@@ -179,8 +182,6 @@ function convertToVisitorTime(hour, minute, userOffset) {
   if(visitorHour >= 24) visitorHour -= 24;
   return {h: Math.floor(visitorHour), m: minute};
 }
-
-// Datum formatieren nach Browser-Locale
 function formatDateLocale(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleDateString();
@@ -194,6 +195,7 @@ async function loadSessions() {
     listEl.innerHTML = '<div class="empty-text">No sessions available.</div>';
     return;
   }
+
   snapshot.forEach(doc => {
     const data = doc.data();
     const { name, game, timerange, tzoffset, date } = data;
@@ -206,8 +208,17 @@ async function loadSessions() {
     item.innerHTML = `<strong>${name}</strong> — ${game}<br>
       Date: <b>${formatDateLocale(date)}</b><br>
       User Time: ${timerange} (UTC${tzoffset>=0?'+':''}${tzoffset})<br>
-      Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
-      <br><button class="delete-btn" onclick="deleteSession('${doc.id}')">Delete</button>`;
+      Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>`;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = () => {
+      const key = prompt('Admin Key eingeben');
+      deleteSession(doc.id, key);
+    };
+
+    item.appendChild(deleteBtn);
     listEl.appendChild(item);
   });
 }
@@ -235,7 +246,11 @@ async function addSession() {
 }
 
 // Delete session
-async function deleteSession(id) {
+async function deleteSession(id, key) {
+  if(key !== ADMIN_KEY){
+    alert("Nur Admin kann löschen!");
+    return;
+  }
   await db.collection('entries').doc(id).delete();
   loadSessions();
 }
