@@ -3,55 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Current Sessions</title>
+  <title>Aktuelle Sitzungen</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    /* ... Dein Style bleibt hier unverändert ... */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e8f0ff, #f8fbff);
+      color: #222;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    .theme-toggle {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      background: #4a8bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .card {
+      background: #fff;
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .form-row input {
+      flex: 1 1 120px;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+    .form-row button.submit {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      font-weight: bold;
+      background: #4a8bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .list-item {
+      max-width: 500px;
+      padding: 10px;
+      margin: 10px auto;
+      border-radius: 12px;
+      background: #f5f8ff;
+      border: 1px solid #e2e8f0;
+      transition: 0.25s;
+      font-size: 0.95rem;
+    }
+    .list-item:hover {
+      background: #e1efff;
+      transform: translateY(-2px);
+    }
+    .item-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .delete-btn {
+      background: #ff4a4a;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .empty-text {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+    }
+    .dark {
+      background: #1a1a1a;
+      color: #eaeaea;
+    }
+    .dark .card { background: #262626; }
+    .dark input { background: #262626; color: #eaeaea; border: 1px solid #444; }
+    .dark .list-item { background: #333; border: 1px solid #444; }
   </style>
 </head>
 <body>
-  <h1>Current Sessions</h1>
+  <h1>Aktuelle Sitzungen</h1>
   <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 
-  <!-- Add New Session -->
+  <!-- Formular für neue Sitzung -->
   <div class="card">
-    <h2>Add New Session</h2>
+    <h2>Neue Sitzung hinzufügen</h2>
     <div class="form-row">
       <input id="name" placeholder="Name (PSN)" />
-      <input id="game" placeholder="Game" />
-      <input id="timerange" placeholder="Time (e.g., 8-12)" />
+      <input id="game" placeholder="Spiel" />
+      <input id="timerange" placeholder="Zeitraum (z.B. 8-12)" />
     </div>
     <div class="form-row">
-      <input id="date" placeholder="Select Date" />
-      <input id="tzoffset" placeholder="UTC offset" />
-      <button class="submit" onclick="addSession()">Save</button>
+      <input id="date" placeholder="Datum auswählen" />
+      <input id="tzoffset" placeholder="UTC-Offset" />
+      <button class="submit" onclick="addSession()">Speichern</button>
     </div>
   </div>
 
-  <!-- Availability List -->
+  <!-- Verfügbarkeitsliste -->
   <div class="card">
-    <h2>Availability List</h2>
-    <div id="list">Loading...</div>
+    <h2>Verfügbarkeitsliste</h2>
+    <div id="list">Wird geladen...</div>
   </div>
 
-  <!-- Firebase COMPAT SDK -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
-    const ADMIN_KEY = "MEIN_GEHEIM_KEY";  // Ersetze durch deinen eigenen Admin-Schlüssel
+    // Admin-Schlüssel
+    const ADMIN_KEY = "MEIN_GEHEIM_KEY";
     let isAdmin = false;
 
-    // Beim Laden fragt der Browser nach Admin-Key
+    // Admin-Überprüfung
     window.addEventListener('load', () => {
-      const key = prompt("Admin-Key eingeben (nur falls du löschen willst):");
+      const key = prompt("Admin-Schlüssel eingeben (nur wenn du löschen willst):");
       if (key === ADMIN_KEY) {
         isAdmin = true;
       }
-
-      loadSessions();  // Lade Sitzungen nach Admin-Abfrage
+      loadSessions();  // Sitzungen nach Admin-Check laden
     });
 
+    // Firebase-Konfiguration
     const firebaseConfig = {
       apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
       authDomain: "psn-planen.firebaseapp.com",
@@ -64,19 +164,45 @@
     const db = firebase.firestore();
     const listEl = document.getElementById("list");
 
-    // Theme Toggle
+    // Dark Mode umschalten
     function toggleTheme() {
       document.body.classList.toggle('dark');
+    }
+
+    // Zeitbereich parsen
+    function parseTimeRange(str) {
+      const parts = str.toLowerCase().replace(/ /g, '').split('-');
+      return parts.map(t => {
+        let pm = t.includes('pm');
+        let am = t.includes('am');
+        t = t.replace(/am|pm/, '');
+        const [h, m] = t.split(':').map(Number);
+        let hour = h;
+        let minute = m || 0;
+        if (pm && hour < 12) hour += 12;
+        if (am && hour === 12) hour = 0;
+        return { h: hour, m: minute };
+      });
+    }
+
+    // Zeit formatieren
+    function formatTime({ h, m }) {
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+
+    // Besucherzeit berechnen
+    function convertToVisitorTime(hour, minute, userOffset) {
+      const localOffset = new Date().getTimezoneOffset() / -60;
+      let visitorHour = hour - userOffset + localOffset;
+      if (visitorHour < 0) visitorHour += 24;
+      if (visitorHour >= 24) visitorHour -= 24;
+      return { h: Math.floor(visitorHour), m: minute };
     }
 
     // Sitzungen laden
     async function loadSessions() {
       const snapshot = await db.collection('entries').get();
-
-      // Prüfen, ob Daten aus Firebase kommen
-      console.log('Daten aus Firebase:', snapshot.docs.map(doc => doc.data()));
-
-      listEl.innerHTML = '';  // Leere die aktuelle Liste
+      listEl.innerHTML = ''; // Liste leeren
 
       if (snapshot.empty) {
         listEl.innerHTML = 'Keine Sitzungen gefunden.';
@@ -104,9 +230,9 @@
           <div class="item-content">
             <div>
               <strong>${name}</strong> — ${game}<br>
-              Date: ${formattedDate}<br>
-              User Time: ${timerange} (UTC${tzoffset >= 0 ? '+' : ''}${tzoffset})<br>
-              Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
+              Datum: ${formattedDate}<br>
+              Nutzerzeit: ${timerange} (UTC${tzoffset >= 0 ? '+' : ''}${tzoffset})<br>
+              Lokale Zeit: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
             </div>
             ${deleteBtnHTML}
           </div>
@@ -115,8 +241,35 @@
       });
     }
 
-    // Hilfsfunktionen (z.B. parseTimeRange, formatTime, convertToVisitorTime) bleiben unverändert
+    // Sitzung hinzufügen
+    async function addSession() {
+      const name = document.getElementById('name').value;
+      const game = document.getElementById('game').value;
+      const timerange = document.getElementById('timerange').value;
+      const tzoffset = parseFloat(document.getElementById('tzoffset').value);
 
+      if (!name || !game || !timerange || isNaN(tzoffset)) {
+        alert('Bitte alle Felder ausfüllen!');
+        return;
+      }
+
+      await db.collection('entries').add({ name, game, timerange, tzoffset });
+      document.getElementById('name').value = '';
+      document.getElementById('game').value = '';
+      document.getElementById('timerange').value = '';
+      document.getElementById('tzoffset').value = '';
+      loadSessions();
+    }
+
+    // Sitzung löschen
+    async function deleteSession(id) {
+      if (!isAdmin) {
+        alert('Nur der Admin kann Sitzungen löschen!');
+        return;
+      }
+      await db.collection('entries').doc(id).delete();
+      loadSessions();
+    }
   </script>
 </body>
 </html>
