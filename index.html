@@ -1,16 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Current Sessions</title>
-
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-
-<!-- Flatpickr CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
 <style>
   body {
     font-family: 'Inter', sans-serif;
@@ -19,8 +13,11 @@
     margin: 0;
     padding: 20px;
   }
-  h1 { text-align: center; font-size: 2rem; margin-bottom: 20px; }
-
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
   .theme-toggle {
     display: block;
     margin: 0 auto 20px auto;
@@ -32,87 +29,90 @@
     cursor: pointer;
     font-weight: bold;
   }
-
   .card {
     background: #fff;
     padding: 24px;
     border-radius: 20px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-    max-width: 700px;
+    max-width: 600px;
     margin: 20px auto;
   }
 
-  /* Form Layout */
+  /* Add Session Formular */
   .form-row {
     display: flex;
-    flex-wrap: wrap;
     gap: 10px;
+    flex-wrap: wrap;
     margin-top: 10px;
   }
-
-  .form-row input, .form-row button {
-    flex: 1 1 80px;   /* hier ändern */
-    min-width: 60px;  /* verhindert zu kleine Felder */
-    max-width: 150px; /* optional: verhindert dass sie zu breit werden */
-    padding: 8px;     /* kleinerer Abstand innen */
+  .form-row input {
+    flex: 1 1 120px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
     font-size: 0.95rem;
   }
-
   .form-row button.submit {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    font-weight: bold;
     background: #4a8bff;
     color: white;
     border: none;
-    font-weight: bold;
+    border-radius: 10px;
     cursor: pointer;
   }
 
-  /* ===== Availability List kompakt ===== */
-.list-item {
-    max-width: 500px;      /* maximale Breite der Box */
-    padding: 10px;         /* kleinerer Innenabstand */
-    margin: 10px auto;     /* zentriert in der Card */
+  /* Availability List kompakt */
+  .list-item {
+    max-width: 500px;
+    padding: 10px;
+    margin: 10px auto;
     border-radius: 12px;
     background: #f5f8ff;
     border: 1px solid #e2e8f0;
     transition: 0.25s;
     font-size: 0.95rem;
-}
-
-.list-item:hover {
+  }
+  .list-item:hover {
     background: #e1efff;
     transform: translateY(-2px);
-}
-
-.delete-btn {
-    width: auto;           /* nur so breit wie nötig */
-    padding: 6px 12px;     /* kompakteres Padding */
-    font-size: 0.9rem;
-    margin-top: 8px;
+  }
+  .item-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .delete-btn {
     background: #ff4a4a;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-weight: bold;
     cursor: pointer;
-}
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
-  .empty-text { text-align: center; padding: 20px; color: #777; }
+  .empty-text {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+  }
 
-  /* Dark Theme */
-  .dark { background: #1a1a1a; color: #eaeaea; }
+  /* Dark Mode */
+  .dark {
+    background: #1a1a1a;
+    color: #eaeaea;
+  }
   .dark .card { background: #262626; }
   .dark input { background: #262626; color: #eaeaea; border: 1px solid #444; }
   .dark .list-item { background: #333; border: 1px solid #444; }
-
-  /* Flatpickr Styling */
-  .flatpickr-calendar {
-    border-radius: 14px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    font-family: 'Inter', sans-serif;
-  }
-  .flatpickr-month { background-color: #4a8bff; color: white; border-radius: 10px 10px 0 0; }
-  .flatpickr-weekday { color: #333; font-weight: 600; }
-  .flatpickr-day.selected { background: #4a8bff; color: white; border-radius: 50%; }
-  .flatpickr-day.today { border: 1px solid #4a8bff; }
 </style>
 </head>
 <body>
@@ -120,6 +120,7 @@
 <h1>Current Sessions</h1>
 <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 
+<!-- Add New Session -->
 <div class="card">
   <h2>Add New Session</h2>
   <div class="form-row">
@@ -134,6 +135,7 @@
   </div>
 </div>
 
+<!-- Availability List -->
 <div class="card">
   <h2>Availability List</h2>
   <div id="list">Loading...</div>
@@ -143,16 +145,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<!-- Flatpickr JS + L10n -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/en.js"></script>
-
 <script>
-// === Admin-Key ===
-const ADMIN_KEY = "GrandiaPSN2025"; // <-- Hier deinen geheimen Schlüssel eintragen
-
-// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
   authDomain: "psn-planen.firebaseapp.com",
@@ -169,108 +162,86 @@ const listEl = document.getElementById("list");
 function toggleTheme() { document.body.classList.toggle('dark'); }
 
 // Time helpers
-function parseTimeRange(str){
-  const parts = str.split('-');
-  return parts.map(t=>{
-    const hour = parseInt(t);
-    return {h: hour, m:0};
+function parseTimeRange(str) {
+  const parts = str.toLowerCase().replace(/ /g, '').split('-');
+  return parts.map(t => {
+    let pm = t.includes('pm');
+    let am = t.includes('am');
+    t = t.replace(/am|pm/, '');
+    const [h, m] = t.split(':').map(Number);
+    let hour = h;
+    let minute = m || 0;
+    if(pm && hour < 12) hour += 12;
+    if(am && hour === 12) hour = 0;
+    return { h: hour, m: minute };
   });
 }
-function formatTime({h,m}){ return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`; }
-function convertToVisitorTime(hour, minute, userOffset){
+function formatTime({h,m}) { return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`; }
+function convertToVisitorTime(hour, minute, userOffset) {
   const localOffset = new Date().getTimezoneOffset() / -60;
   let visitorHour = hour - userOffset + localOffset;
   if(visitorHour < 0) visitorHour += 24;
   if(visitorHour >= 24) visitorHour -= 24;
   return {h: Math.floor(visitorHour), m: minute};
 }
-function formatDateLocale(dateStr){
-  const d = new Date(dateStr);
-  return d.toLocaleDateString();
-}
 
 // Load sessions
-async function loadSessions(){
+async function loadSessions() {
   const snapshot = await db.collection('entries').get();
   listEl.innerHTML = '';
-  if(snapshot.empty){
+  if(snapshot.empty) {
     listEl.innerHTML = '<div class="empty-text">No sessions available.</div>';
     return;
   }
-
-  snapshot.forEach(doc=>{
+  snapshot.forEach(doc => {
     const data = doc.data();
-    const { name, game, timerange, tzoffset, date } = data;
+    const { name, game, timerange, tzoffset } = data;
     const [from, to] = parseTimeRange(timerange);
     const visitorFrom = convertToVisitorTime(from.h, from.m, tzoffset);
     const visitorTo = convertToVisitorTime(to.h, to.m, tzoffset);
 
     const item = document.createElement('div');
     item.className = 'list-item';
-    item.innerHTML = `<strong>${name}</strong> — ${game}<br>
-      Date: <b>${formatDateLocale(date)}</b><br>
-      User Time: ${timerange} (UTC${tzoffset>=0?'+':''}${tzoffset})<br>
-      Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>`;
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.onclick = ()=>{
-      const key = prompt('Admin Key eingeben');
-      deleteSession(doc.id, key);
-    };
-
-    item.appendChild(deleteBtn);
+    item.innerHTML = `
+      <div class="item-content">
+        <div>
+          <strong>${name}</strong> — ${game}<br>
+          User Time: ${timerange} (UTC${tzoffset>=0?'+':''}${tzoffset})<br>
+          Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
+        </div>
+        <button class="delete-btn" onclick="deleteSession('${doc.id}')">X</button>
+      </div>
+    `;
     listEl.appendChild(item);
   });
 }
 
 // Add session
-async function addSession(){
+async function addSession() {
   const name = document.getElementById('name').value;
   const game = document.getElementById('game').value;
   const timerange = document.getElementById('timerange').value;
-  const date = document.getElementById('date').value;
   const tzoffset = parseFloat(document.getElementById('tzoffset').value);
 
-  if(!name || !game || !timerange || !date || isNaN(tzoffset)){
+  if(!name || !game || !timerange || isNaN(tzoffset)) {
     alert('Fill all fields correctly!');
     return;
   }
 
-  await db.collection('entries').add({ name, game, timerange, tzoffset, date });
+  await db.collection('entries').add({ name, game, timerange, tzoffset });
   document.getElementById('name').value = '';
   document.getElementById('game').value = '';
   document.getElementById('timerange').value = '';
-  document.getElementById('date').value = '';
   document.getElementById('tzoffset').value = '';
   loadSessions();
 }
 
 // Delete session
-async function deleteSession(id, key){
-  if(key !== ADMIN_KEY){
-    alert("Only admin can delete!");
-    return;
-  }
+async function deleteSession(id) {
+  // TODO: hier später Admin-Check einbauen
   await db.collection('entries').doc(id).delete();
   loadSessions();
 }
-
-// Flatpickr: automatische Browser-Locale
-const userLang = navigator.language || navigator.userLanguage;
-let localeOption = 'default';
-if(userLang.startsWith('de')) localeOption = flatpickr.l10ns.de;
-if(userLang.startsWith('en')) localeOption = flatpickr.l10ns.en;
-
-flatpickr("#date", {
-  dateFormat: "Y-m-d",
-  altInput: true,
-  altFormat: "d.m.Y",
-  allowInput: false,
-  animate: true,
-  locale: localeOption,
-});
 
 loadSessions();
 </script>
