@@ -1,10 +1,17 @@
-<!-- rebuild --><!DOCTYPE html>
+<!-- rebuild -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Current Sessions</title>
+
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+<!-- Flatpickr (für modernen Kalender) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <style>
   body {
     font-family: 'Inter', sans-serif;
@@ -13,11 +20,7 @@
     margin: 0;
     padding: 20px;
   }
-  h1 {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 20px;
-  }
+  h1 { text-align: center; font-size: 2rem; margin-bottom: 20px; }
   .theme-toggle {
     display: block;
     margin: 0 auto 20px auto;
@@ -61,10 +64,7 @@
     border: 1px solid #e2e8f0;
     transition: 0.25s;
   }
-  .list-item:hover {
-    background: #e1efff;
-    transform: translateY(-2px);
-  }
+  .list-item:hover { background: #e1efff; transform: translateY(-2px); }
   .delete-btn {
     margin-top: 10px;
     background: #ff4a4a;
@@ -75,18 +75,37 @@
     cursor: pointer;
     width: 100%;
   }
-  .empty-text {
-    text-align: center;
-    padding: 20px;
-    color: #777;
-  }
-  .dark {
-    background: #1a1a1a;
-    color: #eaeaea;
-  }
+  .empty-text { text-align: center; padding: 20px; color: #777; }
+
+  /* Dark Theme */
+  .dark { background: #1a1a1a; color: #eaeaea; }
   .dark .card { background: #262626; }
   .dark input { background: #262626; color: #eaeaea; border: 1px solid #444; }
   .dark .list-item { background: #333; border: 1px solid #444; }
+
+  /* Flatpickr Styling für moderner Windows 11 Look */
+  .flatpickr-calendar {
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    font-family: 'Inter', sans-serif;
+  }
+  .flatpickr-month {
+    background-color: #4a8bff;
+    color: white;
+    border-radius: 10px 10px 0 0;
+  }
+  .flatpickr-weekday {
+    color: #333;
+    font-weight: 600;
+  }
+  .flatpickr-day.selected {
+    background: #4a8bff;
+    color: white;
+    border-radius: 50%;
+  }
+  .flatpickr-day.today {
+    border: 1px solid #4a8bff;
+  }
 </style>
 </head>
 <body>
@@ -94,15 +113,21 @@
 <h1>Current Sessions</h1>
 <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 
+<!-- Add New Session -->
 <div class="card">
   <h2>Add New Session</h2>
   <input id="name" placeholder="Name (PSN)" />
   <input id="game" placeholder="Game" />
   <input id="timerange" placeholder="Time (e.g., 6pm-8pm)" />
+
+  <!-- Kalenderfeld -->
+  <input id="date" placeholder="Select Date" />
+
   <input id="tzoffset" placeholder="UTC offset (e.g., +1)" />
   <button class="submit" onclick="addSession()">Save</button>
 </div>
 
+<!-- Availability List -->
 <div class="card">
   <h2>Availability List</h2>
   <div id="list">Loading...</div>
@@ -112,8 +137,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <script>
-// Firebase Config (dein Projekt)
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
   authDomain: "psn-planen.firebaseapp.com",
@@ -122,15 +150,12 @@ const firebaseConfig = {
   messagingSenderId: "1089591052960",
   appId: "1:1089591052960:web:069c515084f2105b22d7c5"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const listEl = document.getElementById("list");
 
 // Theme toggle
-function toggleTheme() {
-  document.body.classList.toggle('dark');
-}
+function toggleTheme() { document.body.classList.toggle('dark'); }
 
 // Time helpers
 function parseTimeRange(str) {
@@ -166,7 +191,7 @@ async function loadSessions() {
   }
   snapshot.forEach(doc => {
     const data = doc.data();
-    const { name, game, timerange, tzoffset } = data;
+    const { name, game, timerange, tzoffset, date } = data;
     const [from, to] = parseTimeRange(timerange);
     const visitorFrom = convertToVisitorTime(from.h, from.m, tzoffset);
     const visitorTo = convertToVisitorTime(to.h, to.m, tzoffset);
@@ -174,6 +199,7 @@ async function loadSessions() {
     const item = document.createElement('div');
     item.className = 'list-item';
     item.innerHTML = `<strong>${name}</strong> — ${game}<br>
+      Date: <b>${date}</b><br>
       User Time: ${timerange} (UTC${tzoffset>=0?'+':''}${tzoffset})<br>
       Local Time: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
       <br><button class="delete-btn" onclick="deleteSession('${doc.id}')">Delete</button>`;
@@ -186,17 +212,19 @@ async function addSession() {
   const name = document.getElementById('name').value;
   const game = document.getElementById('game').value;
   const timerange = document.getElementById('timerange').value;
+  const date = document.getElementById('date').value;
   const tzoffset = parseFloat(document.getElementById('tzoffset').value);
 
-  if(!name || !game || !timerange || isNaN(tzoffset)) {
+  if(!name || !game || !timerange || !date || isNaN(tzoffset)) {
     alert('Fill all fields correctly!');
     return;
   }
 
-  await db.collection('entries').add({ name, game, timerange, tzoffset });
+  await db.collection('entries').add({ name, game, timerange, tzoffset, date });
   document.getElementById('name').value = '';
   document.getElementById('game').value = '';
   document.getElementById('timerange').value = '';
+  document.getElementById('date').value = '';
   document.getElementById('tzoffset').value = '';
   loadSessions();
 }
@@ -206,6 +234,15 @@ async function deleteSession(id) {
   await db.collection('entries').doc(id).delete();
   loadSessions();
 }
+
+// Initialize Flatpickr
+flatpickr("#date", {
+  dateFormat: "Y-m-d",
+  altInput: true,
+  altFormat: "d.m.Y",
+  allowInput: false,
+  animate: true,
+});
 
 loadSessions();
 </script>
