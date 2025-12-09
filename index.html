@@ -66,27 +66,34 @@
     cursor: pointer;
   }
 
-  .list-item {
-    padding: 14px;
+  /* ===== Availability List kompakt ===== */
+.list-item {
+    max-width: 500px;      /* maximale Breite der Box */
+    padding: 10px;         /* kleinerer Innenabstand */
+    margin: 10px auto;     /* zentriert in der Card */
+    border-radius: 12px;
     background: #f5f8ff;
-    border-radius: 14px;
-    margin-top: 12px;
     border: 1px solid #e2e8f0;
     transition: 0.25s;
-  }
+    font-size: 0.95rem;
+}
 
-  .list-item:hover { background: #e1efff; transform: translateY(-2px); }
+.list-item:hover {
+    background: #e1efff;
+    transform: translateY(-2px);
+}
 
-  .delete-btn {
-    margin-top: 10px;
+.delete-btn {
+    width: auto;           /* nur so breit wie nötig */
+    padding: 6px 12px;     /* kompakteres Padding */
+    font-size: 0.9rem;
+    margin-top: 8px;
     background: #ff4a4a;
     color: white;
     border: none;
-    padding: 8px;
     border-radius: 10px;
     cursor: pointer;
-    width: 100%;
-  }
+}
 
   .empty-text { text-align: center; padding: 20px; color: #777; }
 
