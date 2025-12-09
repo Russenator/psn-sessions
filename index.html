@@ -51,7 +51,7 @@
   }
 
   .form-row input, .form-row button {
-    flex: 1 1 120px;  /* Basisbreite 120px, wächst wenn Platz */
+    flex: 1 1 120px;
     padding: 10px;
     border-radius: 10px;
     border: 1px solid #ccc;
@@ -118,7 +118,7 @@
   <div class="form-row">
     <input id="name" placeholder="Name (PSN)" />
     <input id="game" placeholder="Game" />
-    <input id="timerange" placeholder="Time (e.g., 6pm-8pm)" />
+    <input id="timerange" placeholder="Time (e.g., 8-12)" />
     <input id="date" placeholder="Select Date" />
     <input id="tzoffset" placeholder="UTC offset" />
     <button class="submit" onclick="addSession()">Save</button>
@@ -140,8 +140,8 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/en.js"></script>
 
 <script>
-// Admin-Key: nur du kennst ihn
-const ADMIN_KEY = "GrandiaPSN2025";
+// === Admin-Key ===
+const ADMIN_KEY = "GrandiaPSN2025"; // <-- Hier deinen geheimen Schlüssel eintragen
 
 // Firebase Config
 const firebaseConfig = {
@@ -160,43 +160,36 @@ const listEl = document.getElementById("list");
 function toggleTheme() { document.body.classList.toggle('dark'); }
 
 // Time helpers
-function parseTimeRange(str) {
-  const parts = str.toLowerCase().replace(/ /g, '').split('-');
-  return parts.map(t => {
-    let pm = t.includes('pm');
-    let am = t.includes('am');
-    t = t.replace(/am|pm/, '');
-    const [h, m] = t.split(':').map(Number);
-    let hour = h;
-    let minute = m || 0;
-    if(pm && hour < 12) hour += 12;
-    if(am && hour === 12) hour = 0;
-    return { h: hour, m: minute };
+function parseTimeRange(str){
+  const parts = str.split('-');
+  return parts.map(t=>{
+    const hour = parseInt(t);
+    return {h: hour, m:0};
   });
 }
-function formatTime({h,m}) { return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`; }
-function convertToVisitorTime(hour, minute, userOffset) {
+function formatTime({h,m}){ return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`; }
+function convertToVisitorTime(hour, minute, userOffset){
   const localOffset = new Date().getTimezoneOffset() / -60;
   let visitorHour = hour - userOffset + localOffset;
   if(visitorHour < 0) visitorHour += 24;
   if(visitorHour >= 24) visitorHour -= 24;
   return {h: Math.floor(visitorHour), m: minute};
 }
-function formatDateLocale(dateStr) {
+function formatDateLocale(dateStr){
   const d = new Date(dateStr);
   return d.toLocaleDateString();
 }
 
 // Load sessions
-async function loadSessions() {
+async function loadSessions(){
   const snapshot = await db.collection('entries').get();
   listEl.innerHTML = '';
-  if(snapshot.empty) {
+  if(snapshot.empty){
     listEl.innerHTML = '<div class="empty-text">No sessions available.</div>';
     return;
   }
 
-  snapshot.forEach(doc => {
+  snapshot.forEach(doc=>{
     const data = doc.data();
     const { name, game, timerange, tzoffset, date } = data;
     const [from, to] = parseTimeRange(timerange);
@@ -213,7 +206,7 @@ async function loadSessions() {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
     deleteBtn.textContent = 'Delete';
-    deleteBtn.onclick = () => {
+    deleteBtn.onclick = ()=>{
       const key = prompt('Admin Key eingeben');
       deleteSession(doc.id, key);
     };
@@ -224,14 +217,14 @@ async function loadSessions() {
 }
 
 // Add session
-async function addSession() {
+async function addSession(){
   const name = document.getElementById('name').value;
   const game = document.getElementById('game').value;
   const timerange = document.getElementById('timerange').value;
   const date = document.getElementById('date').value;
   const tzoffset = parseFloat(document.getElementById('tzoffset').value);
 
-  if(!name || !game || !timerange || !date || isNaN(tzoffset)) {
+  if(!name || !game || !timerange || !date || isNaN(tzoffset)){
     alert('Fill all fields correctly!');
     return;
   }
@@ -246,7 +239,7 @@ async function addSession() {
 }
 
 // Delete session
-async function deleteSession(id, key) {
+async function deleteSession(id, key){
   if(key !== ADMIN_KEY){
     alert("Nur Admin kann löschen!");
     return;
