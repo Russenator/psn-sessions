@@ -1,320 +1,103 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sitzungsplaner mit Uhr</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitzungsplaner</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
-body { font-family:'Inter',sans-serif; background:#eef3ff; margin:0; padding:20px; color:#222; transition: background 0.3s, color 0.3s; }
-h1 { text-align:center; display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; }
-.tabs { display:flex; justify-content:center; margin:20px 0; gap:10px; }
-.tab { padding:10px 20px; border-radius:12px; cursor:pointer; background:#4a8bff; color:#fff; font-weight:bold; display:flex; align-items:center; gap:6px; }
-.tab.active { background:#2f6edb; }
-.card { background:#fff; padding:24px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,0.1); max-width:650px; margin:20px auto; transition: all 0.3s; }
-.form-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-input, select { flex:1 1 150px; padding:8px; border-radius:10px; border:1px solid #ccc; }
-.submit { padding:10px 18px; background:#4a8bff; border:none; color:#fff; border-radius:10px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:6px; }
-.list-item { background:#f1f4ff; padding:14px; border-radius:12px; margin:12px 0; border:1px solid #dce3f5; display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s, box-shadow 0.2s; }
-.list-item:hover { transform: translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-.delete-btn { background:#ff4a4a; border:none; color:white; font-size:14px; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.dark { background:#1a1a1a; color:#eaeaea; }
-.dark .card { background:#262626; }
-.dark input, .dark select { background:#262626; border:1px solid #555; color:white; }
-.dark .list-item { background:#333; border-color:#555; }
-#clock-popup { position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#fff; padding:20px; border-radius:20px; display:none; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
-#clock-popup.show { display:block; }
+body { font-family:'Inter',sans-serif; background:#eef3ff; margin:0; padding:20px; color:#222; }
+h1 { text-align:center; margin-bottom:20px; }
+.card { background:#fff; padding:20px; border-radius:15px; box-shadow:0 6px 20px rgba(0,0,0,0.1); max-width:600px; margin:20px auto; }
+.form-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+input, select, button { padding:8px; border-radius:8px; border:1px solid #ccc; flex:1 1 150px; }
+button { cursor:pointer; background:#4a8bff; color:white; border:none; font-weight:bold; }
+.list-item { background:#f1f4ff; padding:12px; border-radius:12px; margin:10px 0; display:flex; justify-content:space-between; align-items:center; }
+.delete-btn { background:#ff4a4a; border:none; color:white; border-radius:50%; width:28px; height:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 </style>
 </head>
 <body>
-<h1>
-<i class="fas fa-calendar"></i> Sitzungsplaner
-<select id="langSwitch" onchange="switchLanguage()" style="padding:6px;border-radius:8px;">
-<option value="auto">Auto</option>
-<option value="de">Deutsch</option>
-<option value="en">Englisch</option>
-</select>
-<button id="darkBtn" style="padding:6px 12px;border-radius:8px;cursor:pointer;">🌓</button>
-</h1>
-<div class="tabs">
-<div class="tab active" data-tab="create" onclick="switchTab(event)"><i class="fas fa-plus"></i> Sitzung erstellen</div>
-<div class="tab" data-tab="list" onclick="switchTab(event)"><i class="fas fa-list"></i> Sitzungsübersicht</div>
-</div>
-<div class="card" id="tab-create">
-<h2>Neue Sitzung erstellen</h2>
-<div class="form-row">
-<input id="name" placeholder="Name (PSN)" />
-<input id="game" placeholder="Spiel" />
-</div>
-<div class="form-row">
-<input id="dateFrom" type="text" placeholder="Startdatum" />
-<input id="dateTo" type="text" placeholder="Enddatum" />
-</div>
-<div class="form-row">
-<input id="timeStart" readonly placeholder="Startzeit" />
-<input id="timeEnd" readonly placeholder="Endzeit" />
-<input id="tzoffset" placeholder="UTC Offset" />
-</div>
-<button class="submit" onclick="addSession()"><i class="fas fa-save"></i> Speichern</button>
-</div>
-<div class="card" id="tab-list" style="display:none;">
-<h2>Sitzungsübersicht</h2>
-<div id="list">Wird geladen...</div>
-<button class="submit" style="background:#ff4a4a;margin-top:10px;" onclick="deleteAll()"><i class="fas fa-trash"></i> Alle löschen</button>
-</div>
-<div id="clock-popup">
-<canvas id="clock-canvas" width="300" height="300"></canvas>
-<button id="applyClockBtn">Übernehmen</button>
-</div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen", storageBucket: "psn-planen.firebasestorage.app", messagingSenderId: "1089591052960", appId: "1:1089591052960:web:069c515084f2105b22d7c5" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const colRef = collection(db, "sessions");
-let isAdmin = false;
-let activeTimeInput = null;
+<h1>Sitzungsplaner</h1>
+
+<div class="card">
+  <h2>Neue Sitzung</h2>
+  <div class="form-row">
+    <input id="name" placeholder="Name (PSN)">
+    <input id="game" placeholder="Spiel">
+  </div>
+  <div class="form-row">
+    <input id="dateFrom" placeholder="Startdatum">
+    <input id="dateTo" placeholder="Enddatum">
+  </div>
+  <div class="form-row">
+    <input id="timeStart" type="time" placeholder="Startzeit">
+    <input id="timeEnd" type="time" placeholder="Endzeit">
+    <input id="tzoffset" placeholder="UTC Offset" readonly>
+    <button onclick="addSession()">Speichern</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Sitzungsübersicht</h2>
+  <div id="list">Wird geladen...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = { 
+  apiKey:"AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", 
+  authDomain:"psn-planen.firebaseapp.com", 
+  projectId:"psn-planen" 
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const colRef = db.collection("sessions");
 const ADMIN_KEY = "MEIN_GEHEIM_KEY";
+let isAdmin = false;
 
-window.addEventListener('load', async () => { 
-  const key = prompt("Admin-Schlüssel (für Löschen)"); 
-  if (key === ADMIN_KEY) isAdmin = true; 
-  flatpickrInit();
-  await loadSessions(); 
-  bindTimeInputs();
+// Flatpickr initialisieren
+window.addEventListener('load', async ()=>{
+  flatpickr("#dateFrom",{ dateFormat:"Y-m-d", altInput:true, altFormat:"d.m.Y", allowInput:true, locale:navigator.language });
+  flatpickr("#dateTo",{ dateFormat:"Y-m-d", altInput:true, altFormat:"d.m.Y", allowInput:true, locale:navigator.language });
+  document.getElementById('tzoffset').value = new Date().getTimezoneOffset()/-60;
+  await loadSessions();
 });
 
-function flatpickrInit(){
-   import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp=>{
-        // Startdatum
-        fp.default('#dateFrom', {
-            dateFormat:'Y-m-d',
-            altInput: true,
-            altFormat: 'd.m.Y',
-            allowInput:true,
-            locale: navigator.language
-        });
-        // Enddatum
-        fp.default('#dateTo', {
-            dateFormat:'Y-m-d',
-            altInput: true,
-            altFormat: 'd.m.Y',
-            allowInput:true,
-            locale: navigator.language
-        });
-  }).catch(e=>console.error('Fehler bei Flatpickr:',e));
-}
-
-function bindTimeInputs(){
-  ['timeStart','timeEnd'].forEach(id=>{
-    const input = document.getElementById(id);
-    input.addEventListener('click',()=>{
-      activeTimeInput = input;
-      if(input.value){
-        const parts = input.value.split(':');
-        if(parts.length===2){ selectedHour=parseInt(parts[0]); selectedMinute=parseInt(parts[1]); }
-      }
-      toggleClockPopup();
-    });
-  });
-}
-
-function switchTab(e){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  e.currentTarget.classList.add('active');
-  const tab = e.currentTarget.dataset.tab;
-  document.getElementById('tab-create').style.display = tab==='create'?'block':'none';
-  document.getElementById('tab-list').style.display = tab==='list'?'block':'none';
-}
-
-function formatDateLocal(date){ return date ? new Date(date).toLocaleDateString(navigator.language) : ''; }
-
-async function loadSessions(){
-  const list = document.getElementById('list');
-  if(!list) return;
-  list.innerHTML = '';
-  try {
-    const snapshot = await getDocs(colRef);
-    if(snapshot && snapshot.docs){
-      snapshot.docs.forEach(docu=>{ 
-        const s = docu.data();
-        list.innerHTML += `<div class="list-item"><div><b>${s.name}</b> – ${s.game}<br>${formatDateLocal(s.from)} → ${formatDateLocal(s.to)}<br>${s.start || ''}–${s.end || ''} (UTC${s.tz || ''})</div>${isAdmin?`<button class="delete-btn" onclick="delSession('${docu.id}')">×</button>`:''}</div>`;
-      });
-    } else { list.innerHTML = '<div class="list-item">Keine Sitzungen verfügbar.</div>'; }
-  } catch(e){ console.error('Fehler beim Laden der Sitzungen:', e); list.innerHTML = '<div class="list-item">Sitzungen konnten nicht geladen werden.</div>'; }
-}
-
-window.delSession = async function(id){ 
-  if(!isAdmin) return alert('Nur Admins können löschen'); 
-  try { await deleteDoc(doc(db,'sessions',id)); } catch(e){ console.error(e); }
-  await loadSessions(); 
-}
-
-window.deleteAll = async function(){ 
-  if(!isAdmin) return alert('Nur Admins können löschen'); 
-  try { const snap = await getDocs(colRef); if(snap && snap.docs) { for(const d of snap.docs) await deleteDoc(doc(db,'sessions',d.id)); } await loadSessions(); } catch(e){ console.error(e); }
-}
-
-window.addSession = async function(){
+async function addSession(){
   const name=document.getElementById('name').value;
   const game=document.getElementById('game').value;
-  const from=document.getElementById('dateFrom')._flatpickr ? document.getElementById('dateFrom')._flatpickr.input.value : document.getElementById('dateFrom').value;
-  const to=document.getElementById('dateTo')._flatpickr ? document.getElementById('dateTo')._flatpickr.input.value : document.getElementById('dateTo').value;
+  const from=document.getElementById('dateFrom')._flatpickr.input.value;
+  const to=document.getElementById('dateTo')._flatpickr.input.value;
   const start=document.getElementById('timeStart').value;
   const end=document.getElementById('timeEnd').value;
-  const tz=document.getElementById('tzoffset').value || new Date().getTimezoneOffset()/-60;
-  if(!name || !game || !from || !to || !start || !end) return alert('Bitte alle Felder ausfüllen');
-  await addDoc(colRef,{name,game,from,to,start,end,tz});
+  const tz=document.getElementById('tzoffset').value;
+  if(!name||!game||!from||!to||!start||!end){ alert("Bitte alle Felder ausfüllen"); return; }
+  await colRef.add({name,game,from,to,start,end,tz});
   await loadSessions();
 }
 
-window.switchLanguage = function(){ const sel=document.getElementById('langSwitch').value; let lang= sel==='auto'? navigator.language: sel; document.documentElement.lang = lang.startsWith('de')? 'de':'en'; }
-
-function toggleDark(){ document.body.classList.toggle('dark'); }
-document.getElementById('darkBtn').addEventListener('click', toggleDark);
-
-/* Analog Clock */
-let clockPopup = document.getElementById('clock-popup');
-let canvas = document.getElementById('clock-canvas');
-let ctx = canvas.getContext('2d');
-let clockRadius = 120, centerX = canvas.width/2, centerY = canvas.height/2;
-let selectedHour = 12, selectedMinute = 0;
-let dragging = false;
-let dragType = null;
-
-function drawClock() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Kreis
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, clockRadius, 0, 2 * Math.PI);
-    ctx.fillStyle = document.body.classList.contains('dark') ? '#262626' : '#f0f4ff';
-    ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = document.body.classList.contains('dark') ? '#444' : '#4a8bff';
-    ctx.stroke();
-
-    // Stunden
-    for (let i = 0; i < 24; i++) {
-        let angle = (i / 24) * 2 * Math.PI - Math.PI/2;
-        let x = centerX + Math.cos(angle) * (clockRadius - 20);
-        let y = centerY + Math.sin(angle) * (clockRadius - 20);
-        ctx.fillStyle = i === selectedHour ? '#4a8bff' : (document.body.classList.contains('dark') ? '#eaeaea' : '#222');
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(i.toString().padStart(2,'0'), x, y);
-    }
-
-    // Minuten
-    [0, 15, 30, 45].forEach(m => {
-        let angle = (m / 60) * 2 * Math.PI - Math.PI/2;
-        let x = centerX + Math.cos(angle) * (clockRadius - 50);
-        let y = centerY + Math.sin(angle) * (clockRadius - 50);
-        ctx.fillStyle = m === selectedMinute ? '#4a8bff' : (document.body.classList.contains('dark') ? '#eaeaea' : '#222');
-        ctx.fillText(m.toString().padStart(2,'0'), x, y);
-    });
-
-    // Zeiger Stunden
-    let hourAngle = (selectedHour / 24) * 2 * Math.PI - Math.PI/2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(hourAngle)*(clockRadius-60), centerY + Math.sin(hourAngle)*(clockRadius-60));
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = '#4a8bff';
-    ctx.stroke();
-
-    // Zeiger Minuten
-    let minAngle = (selectedMinute / 60) * 2 * Math.PI - Math.PI/2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(minAngle)*(clockRadius-30), centerY + Math.sin(minAngle)*(clockRadius-30));
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#ff6a6a';
-    ctx.stroke();
+async function loadSessions(){
+  const list=document.getElementById('list');
+  list.innerHTML="";
+  const snapshot=await colRef.get();
+  if(snapshot.empty){ list.innerHTML="Keine Sitzungen"; return; }
+  snapshot.forEach(doc=>{
+    const s=doc.data();
+    list.innerHTML+=`<div class="list-item"><div><b>${s.name}</b> – ${s.game}<br>${s.from} → ${s.to}<br>${s.start}–${s.end} (UTC${s.tz})</div><button class="delete-btn" onclick="deleteSession('${doc.id}')">×</button></div>`;
+  });
 }
 
-// Berechne den Winkel zum Mittelpunkt
-function getAngle(x, y) {
-    let angle = Math.atan2(y, x) + Math.PI/2;
-    if (angle < 0) angle += 2*Math.PI;
-    return angle;
+// Admin-Key nur beim Löschen abfragen
+async function deleteSession(id){ 
+  const key = prompt("Admin-Schlüssel zum Löschen:");
+  if(key!==ADMIN_KEY){ alert("Falscher Schlüssel!"); return; }
+  await colRef.doc(id).delete(); 
+  await loadSessions(); 
 }
-
-// Berechne Abstand vom Punkt zum Zeiger
-function distToLine(px, py, x1, y1, x2, y2){
-    let A = px - x1;
-    let B = py - y1;
-    let C = x2 - x1;
-    let D = y2 - y1;
-    let dot = A*C + B*D;
-    let len_sq = C*C + D*D;
-    let param = len_sq !== 0 ? dot / len_sq : -1;
-    let xx, yy;
-    if(param < 0){ xx = x1; yy = y1; }
-    else if(param > 1){ xx = x2; yy = y2; }
-    else{ xx = x1 + param * C; yy = y1 + param * D; }
-    let dx = px - xx;
-    let dy = py - yy;
-    return Math.sqrt(dx*dx + dy*dy);
-}
-
-// Maus Events
-canvas.addEventListener('mousedown', e => {
-    dragging = true;
-    let rect = canvas.getBoundingClientRect();
-    let mx = e.clientX - rect.left - centerX;
-    let my = e.clientY - rect.top - centerY;
-    // Prüfe Zeigernähe
-    let hourX = centerX + Math.cos((selectedHour/24)*2*Math.PI - Math.PI/2)*(clockRadius-60);
-    let hourY = centerY + Math.sin((selectedHour/24)*2*Math.PI - Math.PI/2)*(clockRadius-60);
-    let minX = centerX + Math.cos((selectedMinute/60)*2*Math.PI - Math.PI/2)*(clockRadius-30);
-    let minY = centerY + Math.sin((selectedMinute/60)*2*Math.PI - Math.PI/2)*(clockRadius-30);
-    dragType = distToLine(mx, my, 0,0, hourX-centerX, hourY-centerY) < distToLine(mx, my, 0,0, minX-centerX, minY-centerY) ? 'hour':'minute';
-    updateTimeFromMouse(e);
-});
-canvas.addEventListener('mousemove', e => { if(dragging) updateTimeFromMouse(e); });
-canvas.addEventListener('mouseup', ()=>{ dragging=false; dragType=null; });
-canvas.addEventListener('mouseleave', ()=>{ dragging=false; dragType=null; });
-
-function updateTimeFromMouse(e){
-    let rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left - centerX;
-    let y = e.clientY - rect.top - centerY;
-    let angle = getAngle(x, y);
-    if(dragType==='hour'){
-        selectedHour = Math.round((angle/(2*Math.PI))*24)%24;
-    } else if(dragType==='minute'){
-        selectedMinute = Math.round((angle/ (2*Math.PI)*60/15))*15 % 60;
-    }
-    drawClock();
-}
-
-function toggleClockPopup(){
-    // Lade aktuelle Zeit ins Popup
-    if(activeTimeInput){
-        const [h,m] = activeTimeInput.value.split(':').map(Number);
-        if(!isNaN(h)) selectedHour=h;
-        if(!isNaN(m)) selectedMinute=m;
-    }
-    clockPopup.classList.toggle('show');
-    drawClock();
-}
-
-function applyClockTime(){
-    if(activeTimeInput){
-        activeTimeInput.value = `${selectedHour.toString().padStart(2,'0')}:${selectedMinute.toString().padStart(2,'0')}`;
-        activeTimeInput=null;
-    }
-    clockPopup.classList.remove('show');
-    drawClock();
-}
-
-document.getElementById('applyClockBtn').addEventListener('click', applyClockTime);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
