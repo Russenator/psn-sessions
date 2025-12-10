@@ -1,21 +1,306 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Deine Seite</title>
-  <style>
-    /* Styles für die Uhr und Seite hier */
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aktuelle Sitzungen</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #e8f0ff, #f8fbff);
+    color: #222;
+    margin: 0;
+    padding: 20px;
+    transition: background 0.3s, color 0.3s;
+  }
+  h1 { text-align:center; font-size:2rem; margin-bottom:10px; }
+  
+  /* Windows 11 Cards */
+  .card {
+    background: #fff;
+    padding: 24px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    max-width: 600px;
+    margin: 20px auto;
+    transition: box-shadow 0.3s, background 0.3s;
+  }
+  .card:hover { box-shadow: 0 12px 35px rgba(0,0,0,0.12); }
+
+  /* Form */
+  .form-row {
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;
+  }
+  .form-row input {
+    flex:1 1 120px;
+    padding:10px;
+    border-radius:12px;
+    border:1px solid #ccc;
+    font-size:0.95rem;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s, border 0.2s, background 0.3s;
+  }
+  .form-row input:focus {
+    outline:none;
+    border-color:#4a8bff;
+    box-shadow: 0 0 8px rgba(74,139,255,0.5);
+  }
+  .form-row button.submit {
+    flex:0 0 auto;
+    padding:8px 16px;
+    font-weight:bold;
+    background: linear-gradient(135deg, #4a8bff, #6ea6ff);
+    color:white;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 5px 15px rgba(74,139,255,0.4);
+  }
+  .form-row button.submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74,139,255,0.6);
+  }
+
+  /* Session List */
+  .list-item {
+    max-width:500px;
+    padding:12px;
+    margin:10px auto;
+    border-radius:16px;
+    background:#f5f8ff;
+    border:1px solid #e2e8f0;
+    transition:0.25s;
+    font-size:0.95rem;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .list-item:hover { background:#e1efff; transform:translateY(-2px); }
+
+  .delete-btn {
+    background:#ff4a4a;
+    color:white;
+    border:none;
+    border-radius:50%;
+    width:28px; height:28px;
+    font-weight:bold;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow:0 3px 10px rgba(255,74,74,0.4);
+  }
+  .delete-btn:hover { transform:scale(1.1); box-shadow:0 5px 15px rgba(255,74,74,0.6); }
+
+  /* Dark mode */
+  .dark { background:#1a1a1a; color:#eaeaea; }
+  .dark .card { background:#262626; }
+  .dark input { background:#262626; color:#eaeaea; border:1px solid #444; }
+  .dark .list-item { background:#333; border:1px solid #444; }
+
+  /* Clock Popup */
+  #clock-popup {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:#fff; border-radius:20px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.2);
+    width:260px; height:260px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    z-index:100;
+    opacity:0;
+  }
+  #clock-popup.show { transform:translate(-50%,-50%) scale(1); opacity:1; }
+  #clock-container { position:relative; width:260px; height:260px; margin:0 auto; }
+
+  .clock-number {
+    position:absolute; width:32px; height:32px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    user-select:none;
+    transition: all 0.2s;
+    font-weight:600;
+  }
+  .clock-number:hover, .clock-number.selected {
+    background: #4a8bff;
+    color:white;
+    box-shadow: 0 0 10px rgba(74,139,255,0.6);
+  }
+
+  /* AM/PM */
+  #am-pm-container { display:none; text-align:center; margin-top:10px; }
+</style>
 </head>
 <body>
+<h1>Aktuelle Sitzungen</h1>
 
-  <!-- Deine Inhalte, Eingabefelder, Buttons usw -->
+<div class="card">
+  <h2>Neue Sitzung hinzufügen</h2>
+  <div class="form-row">
+    <input id="name" placeholder="Name (PSN)">
+    <input id="game" placeholder="Spiel">
+    <input id="timerange" placeholder="Startzeit" readonly onclick="toggleClockPopup()">
+  </div>
+  <div class="form-row">
+    <input id="date" type="date">
+    <input id="tzoffset" placeholder="UTC-Offset">
+    <button class="submit" onclick="addSession()">Speichern</button>
+  </div>
+</div>
 
-  <div id="clock-container"></div> <!-- Hier soll die Uhr rein -->
+<div class="card">
+  <h2>Verfügbarkeitsliste</h2>
+  <div id="list">Lädt...</div>
+</div>
 
-  <script>
-    // Dein kompletter JavaScript-Code (inkl. placeNumbers und alles)
-  </script>
+<!-- Clock Popup -->
+<div id="clock-popup">
+  <div id="clock-container"></div>
+  <div class="form-row" style="margin-top:10px;">
+    <input id="hour-input" placeholder="Stunde" style="width:60px;">
+    <input id="minute-input" placeholder="Minute" style="width:60px;">
+  </div>
+  <div id="am-pm-container">
+    <select id="am-pm-select">
+      <option>AM</option>
+      <option>PM</option>
+    </select>
+  </div>
+  <div style="text-align:center; margin-top:10px;">
+    <button onclick="applyTime()" style="padding:6px 12px; border-radius:10px; background:#4a8bff; color:white; border:none; cursor:pointer;">OK</button>
+  </div>
+</div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+// Admin
+const ADMIN_KEY = "MEIN_GEHEIM_KEY";
+let isAdmin = false;
+
+// Sprache erkennen
+let uiLang = navigator.language || "de";
+if(!["de","en","es"].some(l=>uiLang.startsWith(l))) uiLang="de";
+
+// Firebase Config hier eintragen
+const firebaseConfig = { apiKey:"...", authDomain:"...", projectId:"...", storageBucket:"...", messagingSenderId:"...", appId:"..." };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Clock
+let selectedHour=0, selectedMinute=0, useAMPM=(uiLang.startsWith("en"));
+
+function placeNumbers(circle, isHour){
+  circle.innerHTML="";
+  if(isHour){
+    const count=useAMPM?12:24;
+    for(let i=0;i<count;i++){
+      const angle=(i/count)*2*Math.PI-Math.PI/2;
+      const x=Math.cos(angle)*120+130;
+      const y=Math.sin(angle)*120+130;
+      const num=document.createElement("div");
+      num.className="clock-number";
+      const hour=useAMPM?(i===0?12:i):i;
+      num.textContent=useAMPM?hour:i.toString().padStart(2,"0");
+      num.style.left=x+"px"; num.style.top=y+"px";
+      num.onclick=()=>{selectedHour=useAMPM?hour%12:hour; updateSelection();};
+      circle.appendChild(num);
+    }
+  } else {
+    const minutes=[15,30,45,0];
+    minutes.forEach((min,i)=>{
+      const angle=(i/minutes.length)*2*Math.PI-Math.PI/2;
+      const x=Math.cos(angle)*70+130;
+      const y=Math.sin(angle)*70+130;
+      const num=document.createElement("div");
+      num.className="clock-number";
+      num.textContent=min.toString().padStart(2,"0");
+      num.style.left=x+"px"; num.style.top=y+"px";
+      num.onclick=()=>{selectedMinute=min; updateSelection();};
+      circle.appendChild(num);
+    });
+  }
+}
+
+function updateSelection(){
+  [...document.querySelectorAll(".clock-number")].forEach(el=>el.classList.remove("selected"));
+  const hourCount=useAMPM?12:24;
+  for(let i=0;i<hourCount;i++){
+    const hour=useAMPM?(i===0?12:i):i;
+    if(hour=== (useAMPM?(selectedHour===0?12:selectedHour):selectedHour)){document.querySelectorAll(".clock-number")[i].classList.add("selected"); break;}
+  }
+  const minuteOffset=hourCount;
+  [15,30,45,0].forEach((min,i)=>{if(min===selectedMinute) document.querySelectorAll(".clock-number")[minuteOffset+i].classList.add("selected");});
+  document.getElementById("hour-input").value=selectedHour;
+  document.getElementById("minute-input").value=selectedMinute;
+  if(useAMPM){document.getElementById("am-pm-container").style.display="block"; document.getElementById("am-pm-select").value=selectedHour>=12?"PM":"AM";}
+}
+
+const clockPopup=document.getElementById("clock-popup");
+let clockVisible=false;
+function toggleClockPopup(){
+  if(clockVisible){clockPopup.classList.remove("show"); clockVisible=false;}
+  else{placeNumbers(document.getElementById("clock-container"),true); placeNumbers(document.getElementById("clock-container"),false); selectedHour=0; selectedMinute=0; updateSelection(); clockPopup.classList.add("show"); clockVisible=true;}
+}
+function applyTime(){
+  let hour=parseInt(document.getElementById("hour-input").value);
+  const minute=parseInt(document.getElementById("minute-input").value);
+  if(useAMPM){
+    const ampm=document.getElementById("am-pm-select").value;
+    if(ampm==="PM" && hour<12) hour+=12;
+    if(ampm==="AM" && hour===12) hour=0;
+  }
+  if(isNaN(hour)||hour<0||hour>23){alert("Ungültige Stunde!"); return;}
+  if(![0,15,30,45].includes(minute)){alert("Ungültige Minute!"); return;}
+  document.getElementById("timerange").value=`${hour.toString().padStart(2,"0")}:${minute.toString().padStart(2,"0")}`;
+  toggleClockPopup();
+}
+
+// Admin Passwort erst beim Löschen abfragen
+async function deleteSession(id){
+  if(!isAdmin){
+    const entered=prompt("Admin-Schlüssel eingeben (nur wenn du löschen willst):");
+    if(entered===ADMIN_KEY) isAdmin=true; else {alert("Kein Zugriff!"); return;}
+  }
+  if(confirm("Löschen bestätigen?")){await db.collection("entries").doc(id).delete(); loadSessions();}
+}
+
+// Sitzungen laden
+async function loadSessions(){
+  const snapshot=await db.collection("entries").get();
+  const listEl=document.getElementById("list");
+  listEl.innerHTML="";
+  if(snapshot.empty){listEl.innerHTML="Keine Sitzungen gefunden."; return;}
+  snapshot.forEach(doc=>{
+    const data=doc.data();
+    const {name, game, timerange, tzoffset, date}=data;
+    const [from]=timerange.split('-').map(t=>{const [h,m]=t.split(':').map(Number); return {h,m};});
+    const localOffset=new Date().getTimezoneOffset()/-60;
+    let visitorHour=from.h-tzoffset+localOffset; if(visitorHour<0) visitorHour+=24; if(visitorHour>=24) visitorHour-=24;
+    const visitorTime=`${Math.floor(visitorHour).toString().padStart(2,"0")}:${from.m.toString().padStart(2,"0")}`;
+    const formattedDate=date?new Date(date).toLocaleDateString(navigator.language):"";
+    const item=document.createElement("div"); item.className="list-item";
+    item.innerHTML=`<div><strong>${name}</strong> — ${game}<br>Datum: ${formattedDate}<br>Nutzerzeit: ${timerange} (UTC${tzoffset>=0?"+":""}${tzoffset})<br>Lokale Zeit: <b>${visitorTime}</b></div><button class="delete-btn" onclick="deleteSession('${doc.id}')">×</button>`;
+    listEl.appendChild(item);
+  });
+}
+
+// Sitzung hinzufügen
+async function addSession(){
+  const name=document.getElementById("name").value.trim();
+  const game=document.getElementById("game").value.trim();
+  const timerange=document.getElementById("timerange").value.trim();
+  const tzoffset=parseFloat(document.getElementById("tzoffset").value.trim());
+  if(!name||!game||!timerange||isNaN(tzoffset)){alert("Bitte alle Felder ausfüllen!"); return;}
+  await db.collection("entries").add({name,game,timerange,tzoffset});
+  document.getElementById("name").value="";
+  document.getElementById("game").value="";
+  document.getElementById("timerange").value="";
+  document.getElementById("tzoffset").value="";
+  loadSessions();
+}
+
+loadSessions();
+</script>
 </body>
 </html>
