@@ -52,7 +52,7 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
       <input id="dateTo" class="input" placeholder="End date">
       <input id="timeFrom" class="input" placeholder="Start time (hh:mm or 6:30 PM)">
       <input id="timeTo" class="input" placeholder="End time">
-      <input id="tzoffset" class="input" placeholder="UTC offset (e.g. +1)">
+      <input id="tzoffset" class="input" placeholder="UTC offset (e.g. +1)" required>
       <div style="display:flex;align-items:center;"> <button id="saveBtn" class="btn" type="button">Save session</button></div>
     </form>
   </div>
@@ -92,7 +92,7 @@ function getLocale(){ const sel = document.getElementById('langSelect').value; i
 
 function initCalendar(){ 
   const locale = getLocale();
-  const weekStart = locale.startsWith('de') ? 1 : 0;
+  const weekStart = 1; // Montag als Wochenanfang
   flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true });
   flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true });
 }
@@ -126,12 +126,12 @@ async function renderSessions(){
     if(!snap || !snap.docs || snap.docs.length===0){ sessionsEl.innerHTML = '<div class="small">No sessions</div>'; return; }
     snap.docs.forEach(d=>{
       const s = d.data(); const id = d.id;
-      const wrap = document.createElement('div'); wrap.className='session';
+      const wrap = document.createElement("div"); wrap.className='session';
       const localStart = convertToLocalTime(s.start, s.tz);
       const localEnd = convertToLocalTime(s.end, s.tz);
-      const left = document.createElement('div');
+      const left = document.createElement("div");
       left.innerHTML = `<div style="font-weight:600">${s.name} — ${s.game}</div><div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div><div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>`;
-      const del = document.createElement('button');
+      const del = document.createElement("button");
       del.className='delete'; del.textContent='×'; del.title = 'Delete';
       del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'MEIN_GEHEIM_KEY') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); };
       wrap.appendChild(left); wrap.appendChild(del);
