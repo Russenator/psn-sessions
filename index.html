@@ -25,7 +25,7 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
 .delete{background:#ff4d4f;border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
 .toggle{background:#111;color:#fff;padding:8px;border-radius:8px;border:none}
 .dark{--bg:#0b1220;--card:#0f1724;color:#e6eef8}
-.flatpickr-calendar{transition:transform .22s cubic-bezier(.16,.84,.44,1),opacity .18s}
+.flatpickr-calendar{transition:transform .22s cubic-bezier(.16,.84,.44,1),opacity .18s;z-index:9999;}
 .flatpickr-calendar.open{transform:scale(1);opacity:1}
 .flatpickr-calendar.closing{transform:scale(.95);opacity:0}
 </style>
@@ -82,14 +82,13 @@ const dateFrom = document.getElementById('dateFrom');
 const dateTo = document.getElementById('dateTo');
 const tzInput = document.getElementById('tzoffset');
 const sessionsEl = document.getElementById('sessions');
-
 const autoOffset = -new Date().getTimezoneOffset()/60;
 function formatOffset(v){ if(v===null||v===undefined||v==='') return ''; const num = Number(v); if(isNaN(num)) return v; return (num>=0?'+':'')+num; }
 tzInput.value = formatOffset(autoOffset);
 
 await import('https://cdn.jsdelivr.net/npm/flatpickr');
 function getLocale(){ const sel = document.getElementById('langSelect').value; if(sel==='auto') return browserLang; return sel; }
-function initCalendar(){ const locale = getLocale(); const weekStart = locale.startsWith('de') ? 1 : 0; flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true, onOpen(inst){ inst.calendarContainer.classList.remove('closing'); inst.calendarContainer.classList.add('open'); }, onClose(inst){ inst.calendarContainer.classList.remove('open'); inst.calendarContainer.classList.add('closing'); setTimeout(()=>inst.calendarContainer.classList.remove('closing'),220); } }); flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true, onOpen(inst){ inst.calendarContainer.classList.remove('closing'); inst.calendarContainer.classList.add('open'); }, onClose(inst){ inst.calendarContainer.classList.remove('open'); inst.calendarContainer.classList.add('closing'); setTimeout(()=>inst.calendarContainer.classList.remove('closing'),220); } }); }
+function initCalendar(){ const locale = getLocale(); const weekStart = locale.startsWith('de') ? 1 : 0; flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true, appendTo:document.body }); flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true, appendTo:document.body }); }
 initCalendar();
 document.getElementById('langSelect').addEventListener('change', ()=>{ initCalendar(); });
 
