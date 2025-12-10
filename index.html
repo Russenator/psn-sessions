@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sitzungsplaner</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
 <style>
 body { font-family:'Inter',sans-serif; background:#eef3ff; margin:0; padding:20px; color:#222; transition: background 0.3s, color 0.3s; }
-h1 { text-align:center; margin-bottom:20px; }
+h1 { text-align:center; margin-bottom:10px; }
 .card { background:#fff; padding:24px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,0.1); max-width:650px; margin:20px auto; transition: all 0.3s; }
 .form-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
 input, select { flex:1 1 150px; padding:8px; border-radius:10px; border:1px solid #ccc; }
-.submit { padding:10px 18px; background:#4a8bff; border:none; color:#fff; border-radius:10px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:6px; }
+.submit { padding:10px 18px; background:#4a8bff; border:none; color:#fff; border-radius:10px; cursor:pointer; font-weight:bold; }
 .list-item { background:#f1f4ff; padding:14px; border-radius:12px; margin:12px 0; border:1px solid #dce3f5; display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s, box-shadow 0.2s; }
 .list-item:hover { transform: translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
 .delete-btn { background:#ff4a4a; border:none; color:white; font-size:14px; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
@@ -36,8 +36,8 @@ input, select { flex:1 1 150px; padding:8px; border-radius:10px; border:1px soli
 <input id="dateTo" placeholder="Enddatum" />
 </div>
 <div class="form-row">
-<input id="timeStart" placeholder="Startzeit (hh:mm)" />
-<input id="timeEnd" placeholder="Endzeit (hh:mm)" />
+<input id="timeStart" placeholder="Startzeit" />
+<input id="timeEnd" placeholder="Endzeit" />
 <input id="tzoffset" placeholder="UTC Offset" />
 </div>
 <button class="submit" onclick="addSession()">Speichern</button>
@@ -47,46 +47,53 @@ input, select { flex:1 1 150px; padding:8px; border-radius:10px; border:1px soli
 <div id="list">Wird geladen...</div>
 </div>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, addDoc, doc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen", storageBucket: "psn-planen.firebasestorage.app", messagingSenderId: "1089591052960", appId: "1:1089591052960:web:069c515084f2105b22d7c5" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const colRef = collection(db,'sessions');
+const colRef = collection(db, 'sessions');
 let isAdmin = false;
 
-function detect12h(){ return new Intl.DateTimeFormat().resolvedOptions().hour12; }
-function getUTCOffset(){ return new Date().getTimezoneOffset() / -60; }
+// Locale detection for 12h/24h
+const lang = navigator.language || 'en-US';
+const short = lang.split('-')[0];
+const use12h = ['en','ca','au','nz'].includes(short);
 
-// Flatpickr für Datum
-import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp=>{
-  fp.default('#dateFrom',{ altInput:true, altFormat:'d.m.Y', dateFormat:'Y-m-d', locale:'de' });
-  fp.default('#dateTo',{ altInput:true, altFormat:'d.m.Y', dateFormat:'Y-m-d', locale:'de' });
-}).catch(console.error);
+// Auto-detect UTC offset
+document.getElementById('tzoffset').value = new Date().getTimezoneOffset() / -60;
+
+// Flatpickr init
+import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp => {
+  fp.default('#dateFrom', { dateFormat:'Y-m-d', altInput:true, altFormat: short==='de'?'d.m.Y':'F j, Y', locale: lang, allowInput:true, weekStart:1 });
+  fp.default('#dateTo', { dateFormat:'Y-m-d', altInput:true, altFormat: short==='de'?'d.m.Y':'F j, Y', locale: lang, allowInput:true, weekStart:1 });
+});
 
 async function loadSessions(){
-  const list = document.getElementById('list'); list.innerHTML='';
+  const list = document.getElementById('list');
+  list.innerHTML = '';
   try{
     const snap = await getDocs(colRef);
-    if(snap.docs.length===0){ list.innerHTML='<div class="list-item">Keine Sitzungen</div>'; return; }
-    snap.docs.forEach(d=>{
-      const s = d.data();
-      const del = isAdmin ? `<button class="delete-btn" onclick="requestDelete('${d.id}')">×</button>` : '';
-      list.innerHTML += `<div class="list-item"><div><b>${s.name}</b> – ${s.game}<br>${s.from} → ${s.to}<br>${s.start}–${s.end} (UTC${s.tz})</div>${del}</div>`;
-    });
-  } catch(e){ console.error(e); list.innerHTML='<div class="list-item">Fehler beim Laden</div>'; }
+    if(snap && snap.docs.length){
+      snap.docs.forEach(d=>{
+        const s = d.data();
+        const delBtn = `<button class='delete-btn' onclick='requestDelete("${d.id}")'>×</button>`;
+        list.innerHTML += `<div class='list-item'>${s.name} – ${s.game}<br>${s.from} → ${s.to}<br>${s.start || ''}-${s.end || ''} (UTC${s.tz || ''}) ${isAdmin?delBtn:''}</div>`;
+      });
+    } else list.innerHTML = '<div class="list-item">Keine Sitzungen verfügbar.</div>';
+  } catch(e){ console.error(e); list.innerHTML = '<div class="list-item">Fehler beim Laden.</div>'; }
 }
 
 window.addSession = async function(){
   const name=document.getElementById('name').value;
   const game=document.getElementById('game').value;
-  const from=document.getElementById('dateFrom').value;
-  const to=document.getElementById('dateTo').value;
+  const from=document.getElementById('dateFrom')._flatpickr?.input.value || document.getElementById('dateFrom').value;
+  const to=document.getElementById('dateTo')._flatpickr?.input.value || document.getElementById('dateTo').value;
   const start=document.getElementById('timeStart').value;
   const end=document.getElementById('timeEnd').value;
   const tz=document.getElementById('tzoffset').value;
-  if(!name||!game||!from||!to||!start||!end||!tz) return alert('Bitte alles ausfüllen!');
+  if(!name||!game||!from||!to||!start||!end||tz==='') return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)');
   await addDoc(colRef,{name,game,from,to,start,end,tz});
   await loadSessions();
 }
@@ -94,15 +101,14 @@ window.addSession = async function(){
 window.requestDelete = async function(id){
   if(!isAdmin){
     const key = prompt('Admin-Key zum Löschen:');
-    if(key==='MEIN_GEHEIM_KEY') isAdmin=true; else return alert('Falscher Schlüssel');
+    if(key==='MEIN_GEHEIM_KEY'){ isAdmin=true; } else return alert('Falscher Key');
   }
-  if(confirm('Sitzung wirklich löschen?')){
-    await deleteDoc(doc(db,'sessions',id));
-    await loadSessions();
-  }
+  try{ await deleteDoc(doc(db,'sessions',id)); } catch(e){ console.error(e); }
+  await loadSessions();
 }
 
-window.addEventListener('load',()=>{ document.getElementById('tzoffset').value=getUTCOffset(); loadSessions(); });
+loadSessions();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
