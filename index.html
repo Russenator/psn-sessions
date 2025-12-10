@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aktuelle Sitzungen</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <!-- Flatpickr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css" />
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <!-- Analog Clock Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/analogClock/analogClock.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/analogClock/analogClock.css">
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -13,14 +25,11 @@
       margin: 0;
       padding: 20px;
     }
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
+    h1 { text-align: center; margin-bottom: 10px; }
+
     .theme-toggle {
       display: block;
-      margin: 0 auto 20px auto;
+      margin: 0 auto 20px;
       padding: 10px 20px;
       background: #4a8bff;
       color: white;
@@ -34,32 +43,28 @@
       padding: 24px;
       border-radius: 20px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      max-width: 600px;
+      max-width: 650px;
       margin: 20px auto;
     }
+
+    /* Responsive Form */
     .form-row {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
-      margin-top: 10px;
+      gap: 12px;
     }
-    .form-row input {
-      flex: 1 1 120px;
-      padding: 8px;
-      border-radius: 10px;
+    .form-row input,
+    .form-row button {
+      flex: 1 1 calc(50% - 12px);
+      min-width: 140px;
+      padding: 10px;
+      border-radius: 12px;
       border: 1px solid #ccc;
-      font-size: 0.95rem;
     }
-    .form-row button.submit {
-      flex: 0 0 auto;
-      padding: 8px 16px;
-      font-weight: bold;
-      background: #4a8bff;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
+    @media (max-width: 600px) {
+      .form-row input, .form-row button { flex: 1 1 100%; }
     }
+
     .list-item {
       max-width: 500px;
       padding: 10px;
@@ -67,18 +72,15 @@
       border-radius: 12px;
       background: #f5f8ff;
       border: 1px solid #e2e8f0;
-      transition: 0.25s;
-      font-size: 0.95rem;
+      transition: .25s;
     }
     .list-item:hover {
       background: #e1efff;
       transform: translateY(-2px);
     }
-    .item-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+
+    .item-content { display: flex; justify-content: space-between; }
+
     .delete-btn {
       background: #ff4a4a;
       color: white;
@@ -86,72 +88,99 @@
       border-radius: 50%;
       width: 28px;
       height: 28px;
-      font-weight: bold;
       cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
     }
-    .empty-text {
-      text-align: center;
-      padding: 20px;
-      color: #777;
+
+    /* WINDOWS 11 ACRYLIC & ANIMATION ---------------------------------- */
+    .flatpickr-calendar,
+    .analog-clock-container {
+      backdrop-filter: blur(20px) saturate(170%);
+      -webkit-backdrop-filter: blur(20px) saturate(170%);
+      background: rgba(255,255,255,0.55) !important;
+      border-radius: 26px !important;
+      border: 1px solid rgba(255,255,255,0.30) !important;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+      opacity: 0;
+      transform: scale(0.85);
+      transform-origin: top center;
+      transition:
+        opacity .22s ease,
+        transform .25s cubic-bezier(0.16, 0.84, 0.44, 1),
+        box-shadow .25s ease;
     }
+    .flatpickr-calendar.open,
+    .analog-clock-container.open {
+      opacity: 1 !important;
+      transform: scale(1) !important;
+      box-shadow: 0 18px 55px rgba(90,150,255,0.35);
+    }
+    .flatpickr-calendar.closing,
+    .analog-clock-container.closing {
+      opacity: 0 !important;
+      transform: scale(0.9) !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+    }
+
+    /* Dark mode */
     .dark {
-      background: #1a1a1a;
-      color: #eaeaea;
+      background: #121212;
+      color: #eee;
     }
-    .dark .card { background: #262626; }
-    .dark input { background: #262626; color: #eaeaea; border: 1px solid #444; }
-    .dark .list-item { background: #333; border: 1px solid #444; }
+    .dark .card { background: #1f1f1f; }
+    .dark input { background: #222; border-color: #555; }
+    .dark .list-item { background: #222; }
+    .dark .flatpickr-calendar,
+    .dark .analog-clock-container {
+      background: rgba(30,30,30,0.55) !important;
+      border: 1px solid rgba(255,255,255,0.18) !important;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+    }
   </style>
 </head>
 <body>
+
   <h1>Aktuelle Sitzungen</h1>
   <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 
-  <!-- Formular für neue Sitzung -->
+  <!-- Formular -->
   <div class="card">
     <h2>Neue Sitzung hinzufügen</h2>
     <div class="form-row">
-      <input id="name" placeholder="Name (PSN)" />
-      <input id="game" placeholder="Spiel" />
-      <input id="timerange" placeholder="Zeitraum (z.B. 8-12)" />
+      <input id="name" placeholder="Name (PSN)">
+      <input id="game" placeholder="Spiel">
+      <input id="date" placeholder="Datum wählen">
     </div>
+
     <div class="form-row">
-      <input id="date" placeholder="Datum auswählen" />
-      <input id="tzoffset" placeholder="UTC-Offset" />
+      <input id="time_from" class="timepick" placeholder="Startzeit">
+      <input id="time_to" class="timepick" placeholder="Endzeit">
+      <input id="tzoffset" placeholder="UTC-Offset">
       <button class="submit" onclick="addSession()">Speichern</button>
     </div>
   </div>
 
-  <!-- Verfügbarkeitsliste -->
+  <!-- Liste -->
   <div class="card">
     <h2>Verfügbarkeitsliste</h2>
     <div id="list">Wird geladen...</div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // Admin-Schlüssel
+    /* ADMIN KEY */
     const ADMIN_KEY = "MEIN_GEHEIM_KEY";
     let isAdmin = false;
 
-    // Admin-Überprüfung
-    window.addEventListener('load', () => {
+    window.addEventListener("load", () => {
       const key = prompt("Admin-Schlüssel eingeben (nur wenn du löschen willst):");
-      if (key === ADMIN_KEY) {
-        isAdmin = true;
-      }
-      loadSessions();  // Sitzungen nach Admin-Check laden
+      if (key === ADMIN_KEY) isAdmin = true;
+      loadSessions();
     });
 
-    // Firebase-Konfiguration
+    /* FIREBASE */
     const firebaseConfig = {
       apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
       authDomain: "psn-planen.firebaseapp.com",
@@ -162,112 +191,122 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const listEl = document.getElementById("list");
 
-    // Dark Mode umschalten
     function toggleTheme() {
-      document.body.classList.toggle('dark');
+      document.body.classList.toggle("dark");
     }
 
-    // Zeitbereich parsen
-    function parseTimeRange(str) {
-      const parts = str.toLowerCase().replace(/ /g, '').split('-');
-      return parts.map(t => {
-        let pm = t.includes('pm');
-        let am = t.includes('am');
-        t = t.replace(/am|pm/, '');
-        const [h, m] = t.split(':').map(Number);
-        let hour = h;
-        let minute = m || 0;
-        if (pm && hour < 12) hour += 12;
-        if (am && hour === 12) hour = 0;
-        return { h: hour, m: minute };
+    /* Locale Detection */
+    const lang = navigator.language || "en-US";
+    const short = lang.split("-")[0];
+    const use12h = ["en","ca","au","nz"].includes(short);
+
+    /* FLATPICKR SETUP */
+    document.addEventListener("DOMContentLoaded", () => {
+
+      flatpickr("#date", {
+        altInput: true,
+        dateFormat: "Y-m-d",
+        altFormat: short === "de" ? "d.m.Y" : "F j, Y",
+        locale: lang,
+        allowInput: true
+      });
+
+      document.querySelectorAll(".timepick").forEach(el => {
+        flatpickr(el, {
+          enableTime: true,
+          noCalendar: true,
+          dateFormat: use12h ? "h:i K" : "H:i",
+          time_24hr: !use12h,
+          locale: lang,
+          plugins: [
+            new analogClock({
+              hourFormat: use12h ? 12 : 24,
+              theme: "light",
+              handColors: { hour:"#4a8bff", minute:"#4a8bff" }
+            })
+          ]
+        });
+      });
+
+      /* Enable Animated Opening */
+      setTimeout(() => {
+        enablePopupAnimations("#date, .timepick");
+      }, 300);
+    });
+
+    function enablePopupAnimations(selector) {
+      document.querySelectorAll(selector).forEach(el => {
+        el._flatpickr.config.onOpen.push(function() {
+          const popup = this.calendarContainer || document.querySelector(".analog-clock-container");
+          if (!popup) return;
+          popup.classList.remove("closing");
+          requestAnimationFrame(() => popup.classList.add("open"));
+        });
+
+        el._flatpickr.config.onClose.push(function() {
+          const popup = this.calendarContainer || document.querySelector(".analog-clock-container");
+          if (!popup) return;
+          popup.classList.remove("open");
+          popup.classList.add("closing");
+
+          setTimeout(() => popup.classList.remove("closing"), 220);
+        });
       });
     }
 
-    // Zeit formatieren
-    function formatTime({ h, m }) {
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    }
-
-    // Besucherzeit berechnen
-    function convertToVisitorTime(hour, minute, userOffset) {
-      const localOffset = new Date().getTimezoneOffset() / -60;
-      let visitorHour = hour - userOffset + localOffset;
-      if (visitorHour < 0) visitorHour += 24;
-      if (visitorHour >= 24) visitorHour -= 24;
-      return { h: Math.floor(visitorHour), m: minute };
-    }
-
-    // Sitzungen laden
+    /* Sessions */
     async function loadSessions() {
-      const snapshot = await db.collection('entries').get();
-      listEl.innerHTML = ''; // Liste leeren
+      const snapshot = await db.collection("entries").get();
+      const listEl = document.getElementById("list");
+      listEl.innerHTML = "";
 
-      if (snapshot.empty) {
-        listEl.innerHTML = 'Keine Sitzungen gefunden.';
-        return;
-      }
+      if (snapshot.empty) return (listEl.innerHTML = "Keine Sitzungen gefunden.");
 
       snapshot.forEach(doc => {
-        const data = doc.data();
-        const { name, game, timerange, tzoffset, date } = data;
-        const [from, to] = parseTimeRange(timerange);
-        const visitorFrom = convertToVisitorTime(from.h, from.m, tzoffset);
-        const visitorTo = convertToVisitorTime(to.h, to.m, tzoffset);
+        const d = doc.data();
+        const item = document.createElement("div");
+        item.className = "list-item";
 
-        let formattedDate = '';
-        if (date) {
-          formattedDate = new Date(date).toLocaleDateString(navigator.language);
-        }
-
-        const item = document.createElement('div');
-        item.className = 'list-item';
-
-        const deleteBtnHTML = isAdmin ? `<button class="delete-btn" onclick="deleteSession('${doc.id}')">X</button>` : '';
+        const del = isAdmin
+          ? `<button class="delete-btn" onclick="deleteSession('${doc.id}')">X</button>`
+          : "";
 
         item.innerHTML = `
           <div class="item-content">
             <div>
-              <strong>${name}</strong> — ${game}<br>
-              Datum: ${formattedDate}<br>
-              Nutzerzeit: ${timerange} (UTC${tzoffset >= 0 ? '+' : ''}${tzoffset})<br>
-              Lokale Zeit: <b>${formatTime(visitorFrom)} - ${formatTime(visitorTo)}</b>
+              <strong>${d.name}</strong> — ${d.game}<br>
+              Datum: ${new Date(d.date).toLocaleDateString(lang)}<br>
+              Nutzerzeit: ${d.timerange} (UTC${d.tzoffset >= 0 ? "+" : ""}${d.tzoffset})
             </div>
-            ${deleteBtnHTML}
+            ${del}
           </div>
         `;
         listEl.appendChild(item);
       });
     }
 
-    // Sitzung hinzufügen
     async function addSession() {
-      const name = document.getElementById('name').value;
-      const game = document.getElementById('game').value;
-      const timerange = document.getElementById('timerange').value;
-      const tzoffset = parseFloat(document.getElementById('tzoffset').value);
+      const name = name.value;
+      const game = game.value;
+      const dateV = date.value;
+      const t1 = time_from.value;
+      const t2 = time_to.value;
+      const tz = parseFloat(tzoffset.value);
 
-      if (!name || !game || !timerange || isNaN(tzoffset)) {
-        alert('Bitte alle Felder ausfüllen!');
-        return;
+      if (!name || !game || !dateV || !t1 || !t2 || isNaN(tz)) {
+        return alert("Bitte alles ausfüllen!");
       }
 
-      await db.collection('entries').add({ name, game, timerange, tzoffset });
-      document.getElementById('name').value = '';
-      document.getElementById('game').value = '';
-      document.getElementById('timerange').value = '';
-      document.getElementById('tzoffset').value = '';
+      const timerange = `${t1}-${t2}`;
+
+      await db.collection("entries").add({ name, game, date: dateV, timerange, tzoffset: tz });
       loadSessions();
     }
 
-    // Sitzung löschen
     async function deleteSession(id) {
-      if (!isAdmin) {
-        alert('Nur der Admin kann Sitzungen löschen!');
-        return;
-      }
-      await db.collection('entries').doc(id).delete();
+      if (!isAdmin) return alert("Nur Admin!");
+      await db.collection("entries").doc(id).delete();
       loadSessions();
     }
   </script>
