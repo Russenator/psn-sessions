@@ -52,7 +52,7 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
       <input id="dateTo" class="input" placeholder="End date">
       <input id="timeFrom" class="input" placeholder="Start time (hh:mm or 6:30 PM)">
       <input id="timeTo" class="input" placeholder="End time">
-      <input id="tzoffset" class="input" placeholder="UTC offset (e.g. +1)" required>
+      <input id="tzoffset" class="input" placeholder="UTC offset (z.B. +1)" required>
       <div style="display:flex;align-items:center;"> <button id="saveBtn" class="btn" type="button">Save session</button></div>
     </form>
   </div>
@@ -83,7 +83,7 @@ const dateTo = document.getElementById('dateTo');
 const tzInput = document.getElementById('tzoffset');
 const sessionsEl = document.getElementById('sessions');
 const autoOffset = -new Date().getTimezoneOffset()/60;
-function formatOffset(v){ if(v===null||v===undefined||v==='') return ''; const num = Number(v); if(isNaN(num)) return v; return (num>=0?'+':'')+num; }
+function formatOffset(v){ const num = Number(v); if(isNaN(num)) return ''; return (num>=0?'+':'')+num; }
 tzInput.value = formatOffset(autoOffset);
 
 await import('https://cdn.jsdelivr.net/npm/flatpickr');
@@ -92,9 +92,8 @@ function getLocale(){ const sel = document.getElementById('langSelect').value; i
 
 function initCalendar(){ 
   const locale = getLocale();
-  const weekStart = 1; // Montag als Wochenanfang
-  flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true });
-  flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true });
+  flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, allowInput:true, "locale": {firstDayOfWeek:1} });
+  flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, allowInput:true, "locale": {firstDayOfWeek:1} });
 }
 initCalendar();
 document.getElementById('langSelect').addEventListener('change', ()=>{ initCalendar(); });
@@ -156,7 +155,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const to = (document.getElementById('dateTo')._flatpickr?.input.value) || document.getElementById('dateTo').value;
   const start = document.getElementById('timeFrom').value.trim();
   const end = document.getElementById('timeTo').value.trim();
-  const tz = formatOffset(document.getElementById('tzoffset').value.trim());
+  const tz = document.getElementById('tzoffset').value.trim();
   if(!name||!game||!from||!to||!start||!end||tz==='') return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)');
   try{
     await addDoc(colRef,{name,game,from,to,start,end,tz});
