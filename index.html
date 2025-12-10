@@ -1,39 +1,21 @@
-function placeNumbers(circle, isHour) {
-  circle.innerHTML = "";
-  if (isHour) {
-    const count = useAMPM ? 12 : 24;
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
-      const x = Math.cos(angle) * 120 + 130;
-      const y = Math.sin(angle) * 120 + 130;
-      const num = document.createElement("div");
-      num.className = "clock-number";
-      const hour = useAMPM ? (i === 0 ? 12 : i) : i;
-      num.textContent = useAMPM ? hour : i.toString().padStart(2, "0");
-      num.style.left = x + "px";
-      num.style.top = y + "px";
-      num.onclick = () => {
-        selectedHour = useAMPM ? (hour % 12) : hour;
-        updateSelection();
-      };
-      circle.appendChild(num);
-    }
-  } else {
-    const minutes = [15, 30, 45, 0];
-    minutes.forEach((min, i) => {
-      const angle = (i / minutes.length) * 2 * Math.PI - Math.PI / 2;
-      const x = Math.cos(angle) * 70 + 130;
-      const y = Math.sin(angle) * 70 + 130;
-      const num = document.createElement("div");
-      num.className = "clock-number";
-      num.textContent = min.toString().padStart(2, "0");
-      num.style.left = x + "px";
-      num.style.top = y + "px";
-      num.onclick = () => {
-        selectedMinute = min;
-        updateSelection();
-      };
-      circle.appendChild(num);
-    });
-  }
-}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Deine Seite</title>
+  <style>
+    /* Styles für die Uhr und Seite hier */
+  </style>
+</head>
+<body>
+
+  <!-- Deine Inhalte, Eingabefelder, Buttons usw -->
+
+  <div id="clock-container"></div> <!-- Hier soll die Uhr rein -->
+
+  <script>
+    // Dein kompletter JavaScript-Code (inkl. placeNumbers und alles)
+  </script>
+
+</body>
+</html>
