@@ -89,9 +89,23 @@ window.addEventListener('load', async () => {
 });
 
 function flatpickrInit(){
-  import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp => {
-    fp.default('#dateFrom',{ dateFormat:'Y-m-d', locale: navigator.language, allowInput:true });
-    fp.default('#dateTo',{ dateFormat:'Y-m-d', locale: navigator.language, allowInput:true });
+   import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp=>{
+        // Startdatum
+        fp.default('#dateFrom', {
+            dateFormat:'Y-m-d',
+            altInput: true,
+            altFormat: 'd.m.Y',
+            allowInput:true,
+            locale: navigator.language
+        });
+        // Enddatum
+        fp.default('#dateTo', {
+            dateFormat:'Y-m-d',
+            altInput: true,
+            altFormat: 'd.m.Y',
+            allowInput:true,
+            locale: navigator.language
+        });
   }).catch(e=>console.error('Fehler bei Flatpickr:',e));
 }
 
