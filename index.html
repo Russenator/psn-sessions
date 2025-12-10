@@ -345,6 +345,8 @@ const db = firebase.firestore();
    ===================================================== */
 flatpickr("#date", {
   dateFormat: "Y-m-d",
+  locale: uiLang,   // automatisch 'de' / 'en' / 'es'
+  weekStart: (uiLang === "de" || uiLang === "es") ? 1 : 0
 });
 
 /* =====================================================
