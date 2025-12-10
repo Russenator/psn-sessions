@@ -1,119 +1,149 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sitzungsplaner</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sessions / Timezone Planner</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
 <style>
-body { font-family:'Inter',sans-serif; background:#eef3ff; margin:0; padding:20px; color:#222; transition: background 0.3s, color 0.3s; }
-h1 { text-align:center; margin-bottom:20px; }
-.card { background:#fff; padding:24px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,0.1); max-width:650px; margin:20px auto; transition: all 0.3s; }
-.form-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-input { flex:1 1 150px; padding:8px; border-radius:10px; border:1px solid #ccc; }
-.submit { padding:10px 18px; background:#4a8bff; border:none; color:#fff; border-radius:10px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:6px; }
-.list-item { background:#f1f4ff; padding:14px; border-radius:12px; margin:12px 0; border:1px solid #dce3f5; display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s, box-shadow 0.2s; }
-.list-item:hover { transform: translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-.delete-btn { background:#ff4a4a; border:none; color:white; font-size:14px; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.dark { background:#1a1a1a; color:#eaeaea; }
-.dark .card { background:#262626; }
-.dark input { background:#262626; border:1px solid #555; color:white; }
-.dark .list-item { background:#333; border-color:#555; }
+  body {
+    font-family: Inter, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+    transition: background 0.3s, color 0.3s;
+  }
+  :root {
+    --bg: #ffffff;
+    --text: #111;
+    --card: #f5f5f5;
+  }
+  .dark {
+    --bg: #111;
+    --text: #eee;
+    --card: #222;
+  }
+  h1 {
+    text-align: center;
+  }
+  .card {
+    background: var(--card);
+    padding: 15px;
+    border-radius: 12px;
+    max-width: 450px;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 4px 12px #0002;
+  }
+  input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .session {
+    background: var(--card);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .deleteBtn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #d33;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
-<h1>Sitzungsplaner <button id="darkBtn" style="padding:6px 12px;border-radius:8px;cursor:pointer;">🌓</button></h1>
-<div class="card" id="createCard">
-<h2>Neue Sitzung erstellen</h2>
-<div class="form-row">
-<input id="name" placeholder="Name (PSN)" />
-<input id="game" placeholder="Spiel" />
-</div>
-<div class="form-row">
-<input id="dateFrom" placeholder="Startdatum" />
-<input id="dateTo" placeholder="Enddatum" />
-</div>
-<div class="form-row">
-<input id="timeStart" placeholder="Startzeit" />
-<input id="timeEnd" placeholder="Endzeit" />
-<input id="tzoffset" placeholder="UTC Offset" />
-</div>
-<button class="submit" onclick="addSession()">Speichern</button>
-</div>
-<div class="card" id="listCard">
-<h2>Sitzungsübersicht</h2>
-<div id="list">Wird geladen...</div>
-</div>
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+<button id="themeToggle">Dark/Light</button>
+<h1>Sessions Planner</h1>
 
-const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen", storageBucket: "psn-planen.firebasestorage.app", messagingSenderId: "1089591052960", appId: "1:1089591052960:web:069c515084f2105b22d7c5" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const colRef = collection(db, 'sessions');
-let isAdmin = false;
+<div class="card">
+  <label>Datum:</label>
+  <input id="dateInput" placeholder="Datum auswählen" />
 
-// Flatpickr Initialisierung
-import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp => {
-  fp.default('#dateFrom', {dateFormat:'Y-m-d', altInput:true, altFormat:'d.m.Y', allowInput:true, locale: navigator.language});
-  fp.default('#dateTo', {dateFormat:'Y-m-d', altInput:true, altFormat:'d.m.Y', allowInput:true, locale: navigator.language});
+  <label>Uhrzeit:</label>
+  <input id="timeInput" placeholder="z.B. 18:30 oder 6:30 PM" />
+
+  <label>UTC Offset:</label>
+  <input id="utcInput" />
+
+  <button id="addBtn">Session hinzufügen</button>
+</div>
+
+<h2>Alle Sessions</h2>
+<div id="sessionList"></div>
+
+<script>
+// ---------- THEME ----------
+const root = document.documentElement;
+document.getElementById("themeToggle").onclick = () => {
+  root.classList.toggle("dark");
+};
+
+// ---------- AUTO UTC ----------
+function getAutoUTC() {
+  const offset = -new Date().getTimezoneOffset() / 60;
+  return (offset >= 0 ? "+" : "") + offset;
+}
+document.getElementById("utcInput").value = "UTC" + getAutoUTC();
+
+// ---------- DATE PICKER ----------
+flatpickr("#dateInput", {
+  locale: "de",
+  dateFormat: "d.m.Y",
 });
 
-// Dark Mode
-document.getElementById('darkBtn').addEventListener('click', ()=>{ document.body.classList.toggle('dark'); });
+// ---------- SAVE & LOAD ----------
+let sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
+render();
 
-// Zeitzone automatisch
-const tzInput = document.getElementById('tzoffset');
-const offset = -new Date().getTimezoneOffset()/60;
-tzInput.value = (offset>=0?'+':'')+offset;
-
-// Sitzungen laden
-async function loadSessions(){
-  const list = document.getElementById('list');
-  list.innerHTML = '';
-  try{
-    const snap = await getDocs(colRef);
-    if(!snap.empty){
-      snap.forEach(d=>{
-        const s = d.data();
-        const tzStr = (s.tz>=0?'+':'')+s.tz;
-        const li = document.createElement('div');
-        li.className='list-item';
-        li.innerHTML = `<div><b>${s.name}</b> – ${s.game}<br>${s.from} → ${s.to}<br>${s.start}–${s.end} (UTC${tzStr})</div>`;
-        const delBtn = document.createElement('button');
-        delBtn.className='delete-btn';
-        delBtn.innerText='X';
-        delBtn.addEventListener('click', async ()=>{
-          const key = prompt('Admin-Schlüssel eingeben:');
-          if(key!=="MEIN_GEHEIM_KEY") return alert('Falscher Admin-Key');
-          await deleteDoc(doc(db,'sessions',d.id));
-          loadSessions();
-        });
-        li.appendChild(delBtn);
-        list.appendChild(li);
-      });
-    } else { list.innerHTML = 'Keine Sitzungen vorhanden.'; }
-  } catch(e){ console.error(e); list.innerHTML='Fehler beim Laden der Sitzungen.'; }
+function render() {
+  const list = document.getElementById("sessionList");
+  list.innerHTML = "";
+  sessions.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "session";
+    div.innerHTML = `${s.date} – ${s.time} (${s.utc}) <span class="deleteBtn" data-i="${i}">X</span>`;
+    list.appendChild(div);
+  });
+  document.querySelectorAll(".deleteBtn").forEach(btn => {
+    btn.onclick = () => {
+      const key = prompt("Admin-Key eingeben zum Löschen:");
+      if (key === "MEIN_GEHEIM_KEY") {
+        sessions.splice(btn.dataset.i, 1);
+        save();
+      } else alert("Falscher Key!");
+    };
+  });
 }
 
-window.addSession = async function(){
-  const name = document.getElementById('name').value;
-  const game = document.getElementById('game').value;
-  const from = document.getElementById('dateFrom').value;
-  const to = document.getElementById('dateTo').value;
-  const start = document.getElementById('timeStart').value;
-  const end = document.getElementById('timeEnd').value;
-  const tz = parseFloat(document.getElementById('tzoffset').value);
-  if(!name||!game||!from||!to||!start||!end||isNaN(tz)) return alert('Bitte alle Felder ausfüllen!');
-  await addDoc(colRef,{name,game,from,to,start,end,tz});
-  loadSessions();
+function save() {
+  localStorage.setItem("sessions", JSON.stringify(sessions));
+  render();
 }
 
-window.addEventListener('load', loadSessions);
+// ---------- ADD SESSION ----------
+document.getElementById("addBtn").onclick = () => {
+  const d = dateInput.value;
+  const t = timeInput.value;
+  const u = utcInput.value;
+  if (!d || !t) return alert("Bitte Datum und Uhrzeit eingeben");
+  sessions.push({ date: d, time: t, utc: u });
+  save();
+};
 </script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
