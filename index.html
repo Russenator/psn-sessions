@@ -87,18 +87,86 @@ function formatOffset(v){ if(v===null||v===undefined||v==='') return ''; const n
 tzInput.value = formatOffset(autoOffset);
 
 await import('https://cdn.jsdelivr.net/npm/flatpickr');
+
 function getLocale(){ const sel = document.getElementById('langSelect').value; if(sel==='auto') return browserLang; return sel; }
-function initCalendar(){ const locale = getLocale(); const weekStart = locale.startsWith('de') ? 1 : 0; flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true, appendTo:document.body }); flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true, appendTo:document.body }); }
+
+function initCalendar(){ 
+  const locale = getLocale();
+  const weekStart = locale.startsWith('de') ? 1 : 0;
+  flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true });
+  flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, weekStart, allowInput:true });
+}
 initCalendar();
 document.getElementById('langSelect').addEventListener('change', ()=>{ initCalendar(); });
 
-const themeBtn = document.getElementById('themeBtn'); themeBtn.addEventListener('click', ()=>{ document.documentElement.classList.toggle('dark'); themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark'; });
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.addEventListener('click', ()=>{
+  document.documentElement.classList.toggle('dark');
+  themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
+});
 
-function convertToLocalTime(t, tz){ try{ if(!t) return ''; const offset = parseFloat(tz); let [h,m,period] = t.split(/[: ]/); h = Number(h); m = Number(m)||0; if(period && period.toLowerCase()==='pm' && h<12) h+=12; if(period && period.toLowerCase()==='am' && h===12) h=0; const remote = new Date(); remote.setHours(h - offset + autoOffset, m, 0, 0); return remote.toLocaleTimeString(getLocale(), {hour:'2-digit', minute:'2-digit'}); }catch{ return t; }}
+function convertToLocalTime(t, tz){
+  try{
+    if(!t) return '';
+    const offset = parseFloat(tz);
+    let [h,m,period] = t.split(/[: ]/);
+    h = Number(h); m = Number(m)||0;
+    if(period && period.toLowerCase()==='pm' && h<12) h+=12;
+    if(period && period.toLowerCase()==='am' && h===12) h=0;
+    const remote = new Date();
+    remote.setHours(h - offset + autoOffset, m, 0, 0);
+    return remote.toLocaleTimeString(getLocale(), {hour:'2-digit', minute:'2-digit'});
+  }catch{ return t; }
+}
 
-async function renderSessions(){ sessionsEl.innerHTML = ''; try{ const snap = await getDocs(colRef); if(!snap || !snap.docs || snap.docs.length===0){ sessionsEl.innerHTML = '<div class="small">No sessions</div>'; return; } snap.docs.forEach(d=>{ const s = d.data(); const id = d.id; const wrap = document.createElement('div'); wrap.className='session'; const localStart = convertToLocalTime(s.start, s.tz); const localEnd = convertToLocalTime(s.end, s.tz); const left = document.createElement('div'); left.innerHTML = `<div style="font-weight:600">${s.name} — ${s.game}</div><div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div><div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>`; const del = document.createElement('button'); del.className='delete'; del.textContent='×'; del.title = 'Delete'; del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'MEIN_GEHEIM_KEY') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); }; wrap.appendChild(left); wrap.appendChild(del); sessionsEl.appendChild(wrap); }); }catch(e){ console.error(e); sessionsEl.innerHTML = '<div class="small">Error loading sessions</div>'; } }
-function formatDateDisplay(val){ try{ if(!val) return ''; const date = new Date(val); if(isNaN(date)) return val; return date.toLocaleDateString(getLocale(), {weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}); }catch(e){ return val; }}
-document.getElementById('saveBtn').addEventListener('click', async ()=>{ const name = document.getElementById('name').value.trim(); const game = document.getElementById('game').value.trim(); const from = (document.getElementById('dateFrom')._flatpickr?.input.value) || document.getElementById('dateFrom').value; const to = (document.getElementById('dateTo')._flatpickr?.input.value) || document.getElementById('dateTo').value; const start = document.getElementById('timeFrom').value.trim(); const end = document.getElementById('timeTo').value.trim(); const tz = formatOffset(document.getElementById('tzoffset').value.trim()); if(!name||!game||!from||!to||!start||!end||tz==='') return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)'); try{ await addDoc(colRef,{name,game,from,to,start,end,tz}); document.getElementById('sessionForm').reset(); document.getElementById('tzoffset').value = formatOffset(autoOffset); await renderSessions(); }catch(e){ console.error(e); alert('Save failed'); }});
+async function renderSessions(){
+  sessionsEl.innerHTML = '';
+  try{
+    const snap = await getDocs(colRef);
+    if(!snap || !snap.docs || snap.docs.length===0){ sessionsEl.innerHTML = '<div class="small">No sessions</div>'; return; }
+    snap.docs.forEach(d=>{
+      const s = d.data(); const id = d.id;
+      const wrap = document.createElement('div'); wrap.className='session';
+      const localStart = convertToLocalTime(s.start, s.tz);
+      const localEnd = convertToLocalTime(s.end, s.tz);
+      const left = document.createElement('div');
+      left.innerHTML = `<div style="font-weight:600">${s.name} — ${s.game}</div><div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div><div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>`;
+      const del = document.createElement('button');
+      del.className='delete'; del.textContent='×'; del.title = 'Delete';
+      del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'MEIN_GEHEIM_KEY') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); };
+      wrap.appendChild(left); wrap.appendChild(del);
+      sessionsEl.appendChild(wrap);
+    });
+  }catch(e){ console.error(e); sessionsEl.innerHTML = '<div class="small">Error loading sessions</div>'; }
+}
+
+function formatDateDisplay(val){
+  try{
+    if(!val) return '';
+    const date = new Date(val);
+    if(isNaN(date)) return val;
+    return date.toLocaleDateString(getLocale(), {weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'});
+  }catch(e){ return val; }
+}
+
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('name').value.trim();
+  const game = document.getElementById('game').value.trim();
+  const from = (document.getElementById('dateFrom')._flatpickr?.input.value) || document.getElementById('dateFrom').value;
+  const to = (document.getElementById('dateTo')._flatpickr?.input.value) || document.getElementById('dateTo').value;
+  const start = document.getElementById('timeFrom').value.trim();
+  const end = document.getElementById('timeTo').value.trim();
+  const tz = formatOffset(document.getElementById('tzoffset').value.trim());
+  if(!name||!game||!from||!to||!start||!end||tz==='') return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)');
+  try{
+    await addDoc(colRef,{name,game,from,to,start,end,tz});
+    document.getElementById('sessionForm').reset();
+    document.getElementById('tzoffset').value = formatOffset(autoOffset);
+    await renderSessions();
+  }catch(e){ console.error(e); alert('Save failed'); }
+});
+
+await renderSessions();
 </script>
 </body>
 </html>
