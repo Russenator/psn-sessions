@@ -1,314 +1,488 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aktuelle Sitzungen</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sessions</title>
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-  <!-- Flatpickr -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css" />
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+/* =====================================================
+   GLOBAL DESIGN (Windows 11 Rounded + Glow + Shadows)
+   ===================================================== */
 
-  <!-- Analog Clock Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/analogClock/analogClock.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/analogClock/analogClock.css">
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #e8f0ff, #f8fbff);
+  color: #222;
+  margin: 0;
+  padding: 20px;
+  transition: 0.3s;
+}
 
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #e8f0ff, #f8fbff);
-      color: #222;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 { text-align: center; margin-bottom: 10px; }
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-    .theme-toggle {
-      display: block;
-      margin: 0 auto 20px;
-      padding: 10px 20px;
-      background: #4a8bff;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .card {
-      background: #fff;
-      padding: 24px;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      max-width: 650px;
-      margin: 20px auto;
-    }
+.theme-toggle {
+  display: block;
+  margin: 0 auto 20px auto;
+  padding: 10px 20px;
+  background: #4a8bff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    /* Responsive Form */
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .form-row input,
-    .form-row button {
-      flex: 1 1 calc(50% - 12px);
-      min-width: 140px;
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-    }
-    @media (max-width: 600px) {
-      .form-row input, .form-row button { flex: 1 1 100%; }
-    }
+.card {
+  background: #ffffffcc;
+  backdrop-filter: blur(24px);
+  padding: 24px;
+  border-radius: 22px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 650px;
+  margin: 20px auto;
+}
 
-    .list-item {
-      max-width: 500px;
-      padding: 10px;
-      margin: 10px auto;
-      border-radius: 12px;
-      background: #f5f8ff;
-      border: 1px solid #e2e8f0;
-      transition: .25s;
-    }
-    .list-item:hover {
-      background: #e1efff;
-      transform: translateY(-2px);
-    }
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
 
-    .item-content { display: flex; justify-content: space-between; }
+.form-row input {
+  flex: 1 1 150px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
 
-    .delete-btn {
-      background: #ff4a4a;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-    }
+.form-row button.submit {
+  flex: 0 0 auto;
+  padding: 10px 20px;
+  font-weight: bold;
+  background: #4a8bff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
 
-    /* WINDOWS 11 ACRYLIC & ANIMATION ---------------------------------- */
-    .flatpickr-calendar,
-    .analog-clock-container {
-      backdrop-filter: blur(20px) saturate(170%);
-      -webkit-backdrop-filter: blur(20px) saturate(170%);
-      background: rgba(255,255,255,0.55) !important;
-      border-radius: 26px !important;
-      border: 1px solid rgba(255,255,255,0.30) !important;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.18);
-      opacity: 0;
-      transform: scale(0.85);
-      transform-origin: top center;
-      transition:
-        opacity .22s ease,
-        transform .25s cubic-bezier(0.16, 0.84, 0.44, 1),
-        box-shadow .25s ease;
-    }
-    .flatpickr-calendar.open,
-    .analog-clock-container.open {
-      opacity: 1 !important;
-      transform: scale(1) !important;
-      box-shadow: 0 18px 55px rgba(90,150,255,0.35);
-    }
-    .flatpickr-calendar.closing,
-    .analog-clock-container.closing {
-      opacity: 0 !important;
-      transform: scale(0.9) !important;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.10);
-    }
+.list-item {
+  max-width: 600px;
+  padding: 12px;
+  margin: 12px auto;
+  border-radius: 16px;
+  background: #f5f8ff;
+  border: 1px solid #e2e8f0;
+  transition: 0.25s;
+}
 
-    /* Dark mode */
-    .dark {
-      background: #121212;
-      color: #eee;
-    }
-    .dark .card { background: #1f1f1f; }
-    .dark input { background: #222; border-color: #555; }
-    .dark .list-item { background: #222; }
-    .dark .flatpickr-calendar,
-    .dark .analog-clock-container {
-      background: rgba(30,30,30,0.55) !important;
-      border: 1px solid rgba(255,255,255,0.18) !important;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.55);
-    }
-  </style>
+.list-item:hover {
+  background: #e1efff;
+  transform: translateY(-2px);
+}
+
+.item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background: #ff4a4a;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+}
+
+.dark {
+  background: #1a1a1a;
+  color: #eaeaea;
+}
+.dark .card { background: #222; }
+.dark input { background: #2c2c2c; color: #eaeaea; border: 1px solid #444; }
+.dark .list-item { background: #2e2e2e; }
+
+/* ===========================================
+   CALENDAR POPUP (Flatpickr)
+   =========================================== */
+.flatpickr-calendar {
+  border-radius: 20px !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25) !important;
+}
+
+/* =====================================================
+   ANALOG CLOCK PICKER (Hours outside + Minutes inside)
+   ===================================================== */
+
+.clock-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 330px;
+  height: 330px;
+  backdrop-filter: blur(18px) saturate(150%);
+  background: rgba(255,255,255,0.55);
+  border-radius: 26px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.3);
+  display: none;
+  transition: .25s ease;
+  z-index: 9999;
+  padding: 20px;
+  opacity: 0;
+}
+
+.clock-popup.open {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.clock-face {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  margin: auto;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+  border: 3px solid rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hour-circle,
+.minute-circle {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.hour-circle {
+  width: 260px;
+  height: 260px;
+}
+
+.minute-circle {
+  width: 150px;
+  height: 150px;
+  background: rgba(255,255,255,0.3);
+  border: 2px solid rgba(255,255,255,0.7);
+}
+
+.clock-number {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+.clock-number:hover { color: #4a8bff; }
+
+.clock-btn {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px;
+  background: #4a8bff;
+  font-weight: bold;
+  color: white;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+</style>
 </head>
+
 <body>
 
-  <h1>Aktuelle Sitzungen</h1>
-  <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
+<h1 id="titleText">Sessions</h1>
+<button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️</button>
 
-  <!-- Formular -->
-  <div class="card">
-    <h2>Neue Sitzung hinzufügen</h2>
-    <div class="form-row">
-      <input id="name" placeholder="Name (PSN)">
-      <input id="game" placeholder="Spiel">
-      <input id="date" placeholder="Datum wählen">
-    </div>
+<!-- ===================================== -->
+<!-- NEW SESSION -->
+<!-- ===================================== -->
+<div class="card">
+  <h2 id="lblNewSession">Neue Sitzung hinzufügen</h2>
 
-    <div class="form-row">
-      <input id="time_from" class="timepick" placeholder="Startzeit">
-      <input id="time_to" class="timepick" placeholder="Endzeit">
-      <input id="tzoffset" placeholder="UTC-Offset">
-      <button class="submit" onclick="addSession()">Speichern</button>
-    </div>
+  <div class="form-row">
+    <input id="name" placeholder="Name">
+    <input id="game" placeholder="Spiel">
+    <input id="date" placeholder="Datum wählen">
   </div>
 
-  <!-- Liste -->
-  <div class="card">
-    <h2>Verfügbarkeitsliste</h2>
-    <div id="list">Wird geladen...</div>
+  <div class="form-row">
+    <input id="time_from" onclick="openClockPicker(this)" placeholder="Startzeit">
+    <input id="time_to" onclick="openClockPicker(this)" placeholder="Endzeit">
+    <input id="tzoffset" placeholder="UTC-Offset">
+    <button id="btnSave" class="submit" onclick="addSession()">Speichern</button>
   </div>
+</div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<!-- ===================================== -->
+<!-- LIST -->
+<!-- ===================================== -->
+<div class="card">
+  <h2 id="lblList">Verfügbarkeitsliste</h2>
+  <div id="list">Wird geladen...</div>
+</div>
 
-  <script>
-    /* ADMIN KEY */
-    const ADMIN_KEY = "MEIN_GEHEIM_KEY";
-    let isAdmin = false;
+<!-- CLOCK ELEMENT -->
+<div id="clockPicker" class="clock-popup">
+  <div class="clock-face">
+    <div id="hourCircle" class="hour-circle"></div>
+    <div id="minuteCircle" class="minute-circle"></div>
+  </div>
+  <button id="clockConfirm" class="clock-btn">OK</button>
+</div>
 
-    window.addEventListener("load", () => {
-      const key = prompt("Admin-Schlüssel eingeben (nur wenn du löschen willst):");
-      if (key === ADMIN_KEY) isAdmin = true;
-      loadSessions();
-    });
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-    /* FIREBASE */
-    const firebaseConfig = {
-      apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
-      authDomain: "psn-planen.firebaseapp.com",
-      projectId: "psn-planen",
-      storageBucket: "psn-planen.firebasestorage.app",
-      messagingSenderId: "1089591052960",
-      appId: "1:1089591052960:web:069c515084f2105b22d7c5"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+<script>
+/* =====================================================
+   AUTOMATISCHE SPRACHE
+   ===================================================== */
+const userLang = navigator.language || "en";
+let uiLang = userLang.startsWith("de") ? "de" : userLang.startsWith("es") ? "es" : "en";
 
-    function toggleTheme() {
-      document.body.classList.toggle("dark");
+const i18n = {
+  de: {
+    title: "Aktuelle Sitzungen",
+    newSession: "Neue Sitzung hinzufügen",
+    name: "Name",
+    game: "Spiel",
+    date: "Datum wählen",
+    start: "Startzeit",
+    end: "Endzeit",
+    offset: "UTC-Offset",
+    save: "Speichern",
+    list: "Verfügbarkeitsliste",
+    noSessions: "Keine Sitzungen gefunden.",
+    fillAll: "Bitte alle Felder ausfüllen!"
+  },
+  en: {
+    title: "Current Sessions",
+    newSession: "Add New Session",
+    name: "Name",
+    game: "Game",
+    date: "Select Date",
+    start: "Start Time",
+    end: "End Time",
+    offset: "UTC Offset",
+    save: "Save",
+    list: "Availability List",
+    noSessions: "No sessions found.",
+    fillAll: "Please fill out all fields!"
+  },
+  es: {
+    title: "Sesiones actuales",
+    newSession: "Agregar nueva sesión",
+    name: "Nombre",
+    game: "Juego",
+    date: "Elegir fecha",
+    start: "Hora inicio",
+    end: "Hora fin",
+    offset: "Desfase UTC",
+    save: "Guardar",
+    list: "Lista de disponibilidad",
+    noSessions: "No se encontraron sesiones.",
+    fillAll: "¡Completa todos los campos!"
+  }
+};
+
+const t = i18n[uiLang];
+
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("titleText").innerText = t.title;
+  document.getElementById("lblNewSession").innerText = t.newSession;
+  document.getElementById("name").placeholder = t.name;
+  document.getElementById("game").placeholder = t.game;
+  document.getElementById("date").placeholder = t.date;
+  document.getElementById("time_from").placeholder = t.start;
+  document.getElementById("time_to").placeholder = t.end;
+  document.getElementById("tzoffset").placeholder = t.offset;
+  document.getElementById("btnSave").innerText = t.save;
+  document.getElementById("lblList").innerText = t.list;
+});
+
+/* =====================================================
+   DARK MODE
+   ===================================================== */
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+}
+
+/* =====================================================
+   FIREBASE
+   ===================================================== */
+firebase.initializeApp({
+  apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
+  authDomain: "psn-planen.firebaseapp.com",
+  projectId: "psn-planen"
+});
+const db = firebase.firestore();
+
+/* =====================================================
+   FLATPICKR KALENDER
+   ===================================================== */
+flatpickr("#date", {
+  dateFormat: "Y-m-d",
+});
+
+/* =====================================================
+   ANALOG CLOCK PICKER (Hours outside + Minutes inside)
+   ===================================================== */
+
+const useAMPM = navigator.language.startsWith("en");
+let activeInput = null, selectedHour = null, selectedMinute = null;
+
+function placeNumbers(circle, count, radius, isHour) {
+  circle.innerHTML = "";
+
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
+    const x = Math.cos(angle) * radius + radius + 10;
+    const y = Math.sin(angle) * radius + radius + 10;
+
+    const num = document.createElement("div");
+    num.className = "clock-number";
+
+    if (isHour) {
+      const hour = useAMPM ? (i === 0 ? 12 : i) : i;
+      num.textContent = useAMPM ? hour : i.toString().padStart(2, "0");
+      num.onclick = () => (selectedHour = i);
+    } else {
+      num.textContent = i.toString().padStart(2, "0");
+      num.onclick = () => (selectedMinute = i);
     }
 
-    /* Locale Detection */
-    const lang = navigator.language || "en-US";
-    const short = lang.split("-")[0];
-    const use12h = ["en","ca","au","nz"].includes(short);
+    num.style.left = x + "px";
+    num.style.top = y + "px";
+    circle.appendChild(num);
+  }
+}
 
-    /* FLATPICKR SETUP */
-    document.addEventListener("DOMContentLoaded", () => {
+function openClockPicker(input) {
+  activeInput = input;
+  selectedHour = null;
+  selectedMinute = null;
 
-      flatpickr("#date", {
-        altInput: true,
-        dateFormat: "Y-m-d",
-        altFormat: short === "de" ? "d.m.Y" : "F j, Y",
-        locale: lang,
-        allowInput: true
-      });
+  placeNumbers(document.getElementById("hourCircle"), useAMPM ? 12 : 24, 120, true);
+  placeNumbers(document.getElementById("minuteCircle"), 60, 60, false);
 
-      document.querySelectorAll(".timepick").forEach(el => {
-        flatpickr(el, {
-          enableTime: true,
-          noCalendar: true,
-          dateFormat: use12h ? "h:i K" : "H:i",
-          time_24hr: !use12h,
-          locale: lang,
-          plugins: [
-            new analogClock({
-              hourFormat: use12h ? 12 : 24,
-              theme: "light",
-              handColors: { hour:"#4a8bff", minute:"#4a8bff" }
-            })
-          ]
-        });
-      });
+  document.getElementById("clockPicker").classList.add("open");
+}
 
-      /* Enable Animated Opening */
-      setTimeout(() => {
-        enablePopupAnimations("#date, .timepick");
-      }, 300);
-    });
+document.getElementById("clockConfirm").onclick = () => {
+  if (selectedHour === null || selectedMinute === null) return;
 
-    function enablePopupAnimations(selector) {
-      document.querySelectorAll(selector).forEach(el => {
-        el._flatpickr.config.onOpen.push(function() {
-          const popup = this.calendarContainer || document.querySelector(".analog-clock-container");
-          if (!popup) return;
-          popup.classList.remove("closing");
-          requestAnimationFrame(() => popup.classList.add("open"));
-        });
+  let hour = selectedHour;
+  let minute = selectedMinute.toString().padStart(2, "0");
+  let ampm = "";
 
-        el._flatpickr.config.onClose.push(function() {
-          const popup = this.calendarContainer || document.querySelector(".analog-clock-container");
-          if (!popup) return;
-          popup.classList.remove("open");
-          popup.classList.add("closing");
+  if (useAMPM) {
+    ampm = hour >= 12 ? " PM" : " AM";
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+  }
 
-          setTimeout(() => popup.classList.remove("closing"), 220);
-        });
-      });
-    }
+  activeInput.value = `${hour.toString().padStart(2, "0")}:${minute}${ampm}`;
+  document.getElementById("clockPicker").classList.remove("open");
+};
 
-    /* Sessions */
-    async function loadSessions() {
-      const snapshot = await db.collection("entries").get();
-      const listEl = document.getElementById("list");
-      listEl.innerHTML = "";
+/* =====================================================
+   LOAD + ADD + DELETE SESSIONS
+   ===================================================== */
+async function loadSessions() {
+  const snap = await db.collection("entries").get();
+  const listEl = document.getElementById("list");
+  listEl.innerHTML = "";
 
-      if (snapshot.empty) return (listEl.innerHTML = "Keine Sitzungen gefunden.");
+  if (snap.empty) {
+    listEl.innerHTML = t.noSessions;
+    return;
+  }
 
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const item = document.createElement("div");
-        item.className = "list-item";
+  snap.forEach(doc => {
+    const d = doc.data();
 
-        const del = isAdmin
-          ? `<button class="delete-btn" onclick="deleteSession('${doc.id}')">X</button>`
-          : "";
+    const div = document.createElement("div");
+    div.className = "list-item";
 
-        item.innerHTML = `
-          <div class="item-content">
-            <div>
-              <strong>${d.name}</strong> — ${d.game}<br>
-              Datum: ${new Date(d.date).toLocaleDateString(lang)}<br>
-              Nutzerzeit: ${d.timerange} (UTC${d.tzoffset >= 0 ? "+" : ""}${d.tzoffset})
-            </div>
-            ${del}
-          </div>
-        `;
-        listEl.appendChild(item);
-      });
-    }
+    div.innerHTML = `
+      <div class="item-content">
+        <div>
+          <strong>${d.name}</strong> — ${d.game}<br>
+          Datum: ${d.date || "-"}<br>
+          ${d.timerange || ""} (UTC${d.tzoffset >=0?"+":""}${d.tzoffset})
+        </div>
+        <button class="delete-btn" onclick="deleteSession('${doc.id}')">X</button>
+      </div>
+    `;
 
-    async function addSession() {
-      const name = name.value;
-      const game = game.value;
-      const dateV = date.value;
-      const t1 = time_from.value;
-      const t2 = time_to.value;
-      const tz = parseFloat(tzoffset.value);
+    listEl.appendChild(div);
+  });
+}
 
-      if (!name || !game || !dateV || !t1 || !t2 || isNaN(tz)) {
-        return alert("Bitte alles ausfüllen!");
-      }
+async function addSession() {
+  const name = name.value;
+  const game = game.value;
+  const dateV = date.value;
+  const from = time_from.value;
+  const to = time_to.value;
+  const tz = tzoffset.value;
 
-      const timerange = `${t1}-${t2}`;
+  if (!name || !game || !dateV || !from || !to || !tz) {
+    alert(t.fillAll);
+    return;
+  }
 
-      await db.collection("entries").add({ name, game, date: dateV, timerange, tzoffset: tz });
-      loadSessions();
-    }
+  await db.collection("entries").add({
+    name,
+    game,
+    date: dateV,
+    timerange: `${from} - ${to}`,
+    tzoffset: parseFloat(tz),
+  });
 
-    async function deleteSession(id) {
-      if (!isAdmin) return alert("Nur Admin!");
-      await db.collection("entries").doc(id).delete();
-      loadSessions();
-    }
-  </script>
+  loadSessions();
+}
+
+let isAdmin = false;
+const ADMIN_KEY = "MEIN_GEHEIM_KEY";
+
+/* Admin prompt only on delete */
+async function deleteSession(id) {
+  if (!isAdmin) {
+    const key = prompt("Admin-Schlüssel eingeben:");
+    if (key !== ADMIN_KEY) return alert("Falscher Schlüssel!");
+    isAdmin = true;
+  }
+
+  await db.collection("entries").doc(id).delete();
+  loadSessions();
+}
+
+loadSessions();
+</script>
+
 </body>
 </html>
