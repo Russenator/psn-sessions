@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sitzungsplaner</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 body { font-family:'Inter',sans-serif; background:#eef3ff; margin:0; padding:20px; color:#222; transition: background 0.3s, color 0.3s; }
@@ -16,7 +17,8 @@ h1 { text-align:center; display:flex; justify-content:center; align-items:center
 .form-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
 input, select { flex:1 1 150px; padding:8px; border-radius:10px; border:1px solid #ccc; }
 .submit { padding:10px 18px; background:#4a8bff; border:none; color:#fff; border-radius:10px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:6px; }
-.list-item { background:#f1f4ff; padding:14px; border-radius:12px; margin:12px 0; border:1px solid #dce3f5; display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s, box-shadow 0.2s; }
+.list-item { background:#f1f4ff; padding:14px; border-radius:12px; margin:12px 0; border:1px solid #dce3f5; display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s; opacity:0; }
+.list-item.show { opacity:1; transform: translateY(0); }
 .list-item:hover { transform: translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
 .delete-btn { background:#ff4a4a; border:none; color:white; font-size:14px; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .dark { background:#1a1a1a; color:#eaeaea; }
@@ -26,97 +28,106 @@ input, select { flex:1 1 150px; padding:8px; border-radius:10px; border:1px soli
 </style>
 </head>
 <body>
-<h1>Sitzungsplaner</h1>
+<h1>
+<i class="fas fa-calendar"></i> Sitzungsplaner
+<select id="langSwitch" onchange="switchLanguage()" style="padding:6px;border-radius:8px;">
+<option value="auto">Auto</option>
+<option value="de">Deutsch</option>
+<option value="en">Englisch</option>
+</select>
+<button id="darkBtn" style="padding:6px 12px;border-radius:8px;cursor:pointer;">🌓</button>
+</h1>
 <div class="tabs">
-<div class="tab active" data-tab="create" onclick="switchTab(event)">Sitzung erstellen</div>
-<div class="tab" data-tab="list" onclick="switchTab(event)">Sitzungsübersicht</div>
+<div class="tab active" data-tab="create" onclick="switchTab(event)"><i class="fas fa-plus"></i> Sitzung erstellen</div>
+<div class="tab" data-tab="list" onclick="switchTab(event)"><i class="fas fa-list"></i> Sitzungsübersicht</div>
 </div>
 <div class="card" id="tab-create">
 <h2>Neue Sitzung erstellen</h2>
 <div class="form-row">
-<input id="name" placeholder="Name (PSN)">
-<input id="game" placeholder="Spiel">
+<input id="name" placeholder="Name (PSN)" />
+<input id="game" placeholder="Spiel" />
 </div>
 <div class="form-row">
-<input id="dateFrom" placeholder="Startdatum">
-<input id="dateTo" placeholder="Enddatum">
+<input id="dateFrom" type="text" placeholder="Startdatum" />
+<input id="dateTo" type="text" placeholder="Enddatum" />
 </div>
 <div class="form-row">
-<input id="timeStart" placeholder="Startzeit">
-<input id="timeEnd" placeholder="Endzeit">
-<input id="tzoffset" placeholder="UTC Offset">
+<input id="timeStart" placeholder="Startzeit" />
+<input id="timeEnd" placeholder="Endzeit" />
+<input id="tzoffset" placeholder="UTC Offset" />
 </div>
-<button class="submit" onclick="addSession()">Speichern</button>
+<button class="submit" onclick="addSession()"><i class="fas fa-save"></i> Speichern</button>
 </div>
 <div class="card" id="tab-list" style="display:none;">
 <h2>Sitzungsübersicht</h2>
 <div id="list">Wird geladen...</div>
-<button class="submit" style="background:#ff4a4a;margin-top:10px;" onclick="deleteAll()">Alle löschen</button>
+<button class="submit" style="background:#ff4a4a;margin-top:10px;" onclick="deleteAll()"><i class="fas fa-trash"></i> Alle löschen</button>
 </div>
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, addDoc, doc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = { apiKey: 'AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU', authDomain: 'psn-planen.firebaseapp.com', projectId: 'psn-planen', storageBucket: 'psn-planen.firebasestorage.app', messagingSenderId: '1089591052960', appId: '1:1089591052960:web:069c515084f2105b22d7c5' };
+const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen", storageBucket: "psn-planen.firebasestorage.app", messagingSenderId: "1089591052960", appId: "1:1089591052960:web:069c515084f2105b22d7c5" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const colRef = collection(db, 'sessions');
-const ADMIN_KEY = 'MEIN_GEHEIM_KEY';
+const colRef = collection(db, "sessions");
+let isAdmin = false;
+const ADMIN_KEY = "MEIN_GEHEIM_KEY";
 
-window.addEventListener('load', () => { flatpickr('#dateFrom',{dateFormat:'Y-m-d',allowInput:true}); flatpickr('#dateTo',{dateFormat:'Y-m-d',allowInput:true}); loadSessions(); });
+function switchTab(e){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); e.currentTarget.classList.add('active'); const tab=e.currentTarget.dataset.tab; document.getElementById('tab-create').style.display=tab==='create'?'block':'none'; document.getElementById('tab-list').style.display=tab==='list'?'block':'none'; }
+function toggleDark(){ document.body.classList.toggle('dark'); }
+document.getElementById('darkBtn').addEventListener('click', toggleDark);
+window.switchLanguage = function(){ const sel=document.getElementById('langSwitch').value; let lang= sel==='auto'? navigator.language: sel; document.documentElement.lang = lang.startsWith('de')? 'de':'en'; }
 
-function switchTab(e){
- document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
- e.currentTarget.classList.add('active');
- const tab=e.currentTarget.dataset.tab;
- document.getElementById('tab-create').style.display=tab==='create'?'block':'none';
- document.getElementById('tab-list').style.display=tab==='list'?'block':'none';
+// Flatpickr für Datum
+function initFlatpickr(){
+  import('https://cdn.jsdelivr.net/npm/flatpickr').then(fp=>{
+    fp.default('#dateFrom',{ dateFormat:'Y-m-d', altInput:true, altFormat:'d.m.Y', locale:navigator.language, allowInput:true });
+    fp.default('#dateTo',{ dateFormat:'Y-m-d', altInput:true, altFormat:'d.m.Y', locale:navigator.language, allowInput:true });
+  }).catch(e=>console.error(e));
 }
+window.addEventListener('load',()=>{ initFlatpickr(); loadSessions(); });
 
-function formatDateLocal(date){ return date ? new Date(date).toLocaleDateString(navigator.language) : ''; }
-
+// Load Sessions
 async function loadSessions(){
- const list = document.getElementById('list');
- list.innerHTML = '';
- try {
-   const snapshot = await getDocs(colRef);
-   if(snapshot && snapshot.docs.length){
-     snapshot.docs.forEach(docu => {
-       const s = docu.data();
-       list.innerHTML += `<div class='list-item'><div><b>${s.name}</b> – ${s.game}<br>${formatDateLocal(s.from)} → ${formatDateLocal(s.to)}<br>${s.start || ''}–${s.end || ''} (UTC${s.tz || ''})</div><button class='delete-btn' onclick='deleteSession("${docu.id}")'>×</button></div>`;
-     });
-   } else list.innerHTML = '<div class="list-item">Keine Sitzungen verfügbar.</div>';
- } catch(e){ console.error(e); list.innerHTML = '<div class="list-item">Sitzungen konnten nicht geladen werden.</div>'; }
+  const list = document.getElementById('list'); list.innerHTML='';
+  try{
+    const snap = await getDocs(colRef);
+    if(snap.empty){ list.innerHTML='Keine Sitzungen verfügbar.'; return; }
+    snap.forEach(docu=>{
+      const s=docu.data();
+      const item=document.createElement('div');
+      item.className='list-item';
+      item.innerHTML=`<div><b>${s.name}</b> – ${s.game}<br>${new Date(s.from).toLocaleDateString(navigator.language)} → ${new Date(s.to).toLocaleDateString(navigator.language)}<br>${s.start}-${s.end} (UTC${s.tz})</div>${s.isAdmin?`<button class="delete-btn">×</button>`:''}`;
+      if(isAdmin){ item.querySelector('.delete-btn').addEventListener('click',()=>{ if(confirm('Admin-Key eingeben:')) deleteSession(docu.id); }); }
+      list.appendChild(item);
+      setTimeout(()=>item.classList.add('show'),50);
+    });
+  } catch(e){ console.error(e); list.innerHTML='Fehler beim Laden der Sitzungen.'; }
 }
 
-window.deleteSession = async function(id){
- const key = prompt('Admin-Schlüssel eingeben (nur für Löschen)');
- if(key !== ADMIN_KEY) return alert('Falscher Schlüssel! Löschen abgebrochen.');
- try { await deleteDoc(doc(db,'sessions',id)); await loadSessions(); } catch(e){ console.error(e); }
+// Add Session
+async function addSession(){
+  const name=document.getElementById('name').value;
+  const game=document.getElementById('game').value;
+  const from=document.getElementById('dateFrom')._flatpickr.input.value;
+  const to=document.getElementById('dateTo')._flatpickr.input.value;
+  const start=document.getElementById('timeStart').value;
+  const end=document.getElementById('timeEnd').value;
+  const tz=document.getElementById('tzoffset').value;
+  if(!name||!game||!from||!to||!start||!end||!tz){ alert('Bitte alle Felder ausfüllen inklusive UTC Offset'); return; }
+  await addDoc(colRef,{name,game,from,to,start,end,tz});
+  loadSessions();
 }
 
-window.deleteAll = async function(){
- const key = prompt('Admin-Schlüssel eingeben (nur für Löschen)');
- if(key !== ADMIN_KEY) return alert('Falscher Schlüssel! Löschen abgebrochen.');
- try {
-   const snap = await getDocs(colRef);
-   for(const d of snap.docs) await deleteDoc(doc(db,'sessions',d.id));
-   await loadSessions();
- } catch(e){ console.error(e); }
+// Delete
+async function deleteSession(id){
+  const key=prompt('Admin-Key zum Löschen eingeben:');
+  if(key!==ADMIN_KEY){ alert('Falscher Key!'); return; }
+  await deleteDoc(doc(db,'sessions',id));
+  loadSessions();
 }
-
-window.addSession = async function(){
- const name=document.getElementById('name').value;
- const game=document.getElementById('game').value;
- const from=document.getElementById('dateFrom').value;
- const to=document.getElementById('dateTo').value;
- const start=document.getElementById('timeStart').value;
- const end=document.getElementById('timeEnd').value;
- const tz=document.getElementById('tzoffset').value || new Date().getTimezoneOffset()/-60;
- if(!name || !game || !from || !to || !start || !end) return alert('Bitte alle Felder ausfüllen');
- await addDoc(colRef,{name,game,from,to,start,end,tz});
- await loadSessions();
-}
+window.deleteAll = async function(){ const key=prompt('Admin-Key zum Löschen eingeben:'); if(key!==ADMIN_KEY){ alert('Falscher Key!'); return; } const snap = await getDocs(colRef); for(const d of snap.docs) await deleteDoc(doc(db,'sessions',d.id)); loadSessions(); }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
