@@ -172,29 +172,134 @@ let selectedHour = 12, selectedMinute = 0;
 let dragging = false;
 let dragType = null;
 
-function drawClock(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.beginPath(); ctx.arc(centerX,centerY,clockRadius,0,2*Math.PI);
-  ctx.fillStyle = document.body.classList.contains('dark') ? '#262626' : '#f0f4ff'; ctx.fill();
-  ctx.lineWidth=4; ctx.strokeStyle = document.body.classList.contains('dark')?'#444':'#4a8bff'; ctx.stroke();
-  for(let i=0;i<24;i++){ let angle=(i/24)*2*Math.PI-Math.PI/2; let x=centerX+Math.cos(angle)*(clockRadius-20); let y=centerY+Math.sin(angle)*(clockRadius-20); ctx.fillStyle = i===selectedHour?'#4a8bff':(document.body.classList.contains('dark')?'#eaeaea':'#222'); ctx.font='14px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(i.toString().padStart(2,'0'),x,y); }
-  [0,15,30,45].forEach(m=>{ let angle=(m/60)*2*Math.PI-Math.PI/2; let x=centerX+Math.cos(angle)*(clockRadius-50); let y=centerY+Math.sin(angle)*(clockRadius-50); ctx.fillStyle = m===selectedMinute?'#4a8bff':(document.body.classList.contains('dark')?'#eaeaea':'#222'); ctx.fillText(m.toString().padStart(2,'0'),x,y); });
-  let hourAngle=(selectedHour/24)*2*Math.PI-Math.PI/2; ctx.beginPath(); ctx.moveTo(centerX,centerY); ctx.lineTo(centerX+Math.cos(hourAngle)*(clockRadius-60),centerY+Math.sin(hourAngle)*(clockRadius-60)); ctx.lineWidth=6; ctx.strokeStyle='#4a8bff'; ctx.stroke();
-  let minAngle=(selectedMinute/60)*2*Math.PI-Math.PI/2; ctx.beginPath(); ctx.moveTo(centerX,centerY); ctx.lineTo(centerX+Math.cos(minAngle)*(clockRadius-30),centerY+Math.sin(minAngle)*(clockRadius-30)); ctx.lineWidth=4; ctx.strokeStyle='#ff6a6a'; ctx.stroke();
+function drawClock() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Kreis
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, clockRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = document.body.classList.contains('dark') ? '#262626' : '#f0f4ff';
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = document.body.classList.contains('dark') ? '#444' : '#4a8bff';
+    ctx.stroke();
+
+    // Stunden
+    for (let i = 0; i < 24; i++) {
+        let angle = (i / 24) * 2 * Math.PI - Math.PI/2;
+        let x = centerX + Math.cos(angle) * (clockRadius - 20);
+        let y = centerY + Math.sin(angle) * (clockRadius - 20);
+        ctx.fillStyle = i === selectedHour ? '#4a8bff' : (document.body.classList.contains('dark') ? '#eaeaea' : '#222');
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i.toString().padStart(2,'0'), x, y);
+    }
+
+    // Minuten
+    [0, 15, 30, 45].forEach(m => {
+        let angle = (m / 60) * 2 * Math.PI - Math.PI/2;
+        let x = centerX + Math.cos(angle) * (clockRadius - 50);
+        let y = centerY + Math.sin(angle) * (clockRadius - 50);
+        ctx.fillStyle = m === selectedMinute ? '#4a8bff' : (document.body.classList.contains('dark') ? '#eaeaea' : '#222');
+        ctx.fillText(m.toString().padStart(2,'0'), x, y);
+    });
+
+    // Zeiger Stunden
+    let hourAngle = (selectedHour / 24) * 2 * Math.PI - Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + Math.cos(hourAngle)*(clockRadius-60), centerY + Math.sin(hourAngle)*(clockRadius-60));
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#4a8bff';
+    ctx.stroke();
+
+    // Zeiger Minuten
+    let minAngle = (selectedMinute / 60) * 2 * Math.PI - Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + Math.cos(minAngle)*(clockRadius-30), centerY + Math.sin(minAngle)*(clockRadius-30));
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ff6a6a';
+    ctx.stroke();
 }
 
-canvas.addEventListener('mousedown', e=>{ dragging=true; setDragType(e); updateTimeFromMouse(e); });
-canvas.addEventListener('mousemove', e=>{ if(dragging) updateTimeFromMouse(e); });
+// Berechne den Winkel zum Mittelpunkt
+function getAngle(x, y) {
+    let angle = Math.atan2(y, x) + Math.PI/2;
+    if (angle < 0) angle += 2*Math.PI;
+    return angle;
+}
+
+// Berechne Abstand vom Punkt zum Zeiger
+function distToLine(px, py, x1, y1, x2, y2){
+    let A = px - x1;
+    let B = py - y1;
+    let C = x2 - x1;
+    let D = y2 - y1;
+    let dot = A*C + B*D;
+    let len_sq = C*C + D*D;
+    let param = len_sq !== 0 ? dot / len_sq : -1;
+    let xx, yy;
+    if(param < 0){ xx = x1; yy = y1; }
+    else if(param > 1){ xx = x2; yy = y2; }
+    else{ xx = x1 + param * C; yy = y1 + param * D; }
+    let dx = px - xx;
+    let dy = py - yy;
+    return Math.sqrt(dx*dx + dy*dy);
+}
+
+// Maus Events
+canvas.addEventListener('mousedown', e => {
+    dragging = true;
+    let rect = canvas.getBoundingClientRect();
+    let mx = e.clientX - rect.left - centerX;
+    let my = e.clientY - rect.top - centerY;
+    // Prüfe Zeigernähe
+    let hourX = centerX + Math.cos((selectedHour/24)*2*Math.PI - Math.PI/2)*(clockRadius-60);
+    let hourY = centerY + Math.sin((selectedHour/24)*2*Math.PI - Math.PI/2)*(clockRadius-60);
+    let minX = centerX + Math.cos((selectedMinute/60)*2*Math.PI - Math.PI/2)*(clockRadius-30);
+    let minY = centerY + Math.sin((selectedMinute/60)*2*Math.PI - Math.PI/2)*(clockRadius-30);
+    dragType = distToLine(mx, my, 0,0, hourX-centerX, hourY-centerY) < distToLine(mx, my, 0,0, minX-centerX, minY-centerY) ? 'hour':'minute';
+    updateTimeFromMouse(e);
+});
+canvas.addEventListener('mousemove', e => { if(dragging) updateTimeFromMouse(e); });
 canvas.addEventListener('mouseup', ()=>{ dragging=false; dragType=null; });
 canvas.addEventListener('mouseleave', ()=>{ dragging=false; dragType=null; });
 
-function setDragType(e){ let rect=canvas.getBoundingClientRect(); let x=e.clientX-rect.left-centerX; let y=e.clientY-rect.top-centerY; let distance=Math.sqrt(x*x+y*y); dragType = distance>clockRadius-60?'hour':'minute'; }
+function updateTimeFromMouse(e){
+    let rect = canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left - centerX;
+    let y = e.clientY - rect.top - centerY;
+    let angle = getAngle(x, y);
+    if(dragType==='hour'){
+        selectedHour = Math.round((angle/(2*Math.PI))*24)%24;
+    } else if(dragType==='minute'){
+        selectedMinute = Math.round((angle/ (2*Math.PI)*60/15))*15 % 60;
+    }
+    drawClock();
+}
 
-function updateTimeFromMouse(e){ let rect=canvas.getBoundingClientRect(); let x=e.clientX-rect.left-centerX; let y=e.clientY-rect.top-centerY; let angle=Math.atan2(y,x)+Math.PI/2; if(angle<0) angle+=2*Math.PI; if(dragType==='hour'){ selectedHour=Math.round((angle/(2*Math.PI))*24)%24; } else{ selectedMinute=Math.round((angle/(2*Math.PI))*60/15)*15%60; } drawClock(); }
+function toggleClockPopup(){
+    // Lade aktuelle Zeit ins Popup
+    if(activeTimeInput){
+        const [h,m] = activeTimeInput.value.split(':').map(Number);
+        if(!isNaN(h)) selectedHour=h;
+        if(!isNaN(m)) selectedMinute=m;
+    }
+    clockPopup.classList.toggle('show');
+    drawClock();
+}
 
-function toggleClockPopup(){ clockPopup.classList.toggle('show'); drawClock(); }
-function applyClockTime(){ if(activeTimeInput){ activeTimeInput.value = `${selectedHour.toString().padStart(2,'0')}:${selectedMinute.toString().padStart(2,'0')}`; activeTimeInput=null; } clockPopup.classList.remove('show'); }
-document.getElementById('applyClockBtn').addEventListener('click',applyClockTime);
+function applyClockTime(){
+    if(activeTimeInput){
+        activeTimeInput.value = `${selectedHour.toString().padStart(2,'0')}:${selectedMinute.toString().padStart(2,'0')}`;
+        activeTimeInput=null;
+    }
+    clockPopup.classList.remove('show');
+    drawClock();
+}
+
+document.getElementById('applyClockBtn').addEventListener('click', applyClockTime);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
