@@ -10,7 +10,7 @@
 
 <style>
 /* -------------------------------------------------
-   THEME VARIABLES (LIGHT + DARK)
+   LIGHT + DARK THEME (sauber)
 ------------------------------------------------- */
 :root {
   --bg: #f4f8ff;
@@ -35,8 +35,12 @@
 ------------------------------------------------- */
 body {
   margin: 0;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  font-family: Inter, system-ui;
   background: var(--bg);
+  color: var(--text);
+}
+
+h1, h3 {
   color: var(--text);
 }
 
@@ -50,45 +54,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
 }
 
 .title {
   display: flex;
+  align-items: center;
   gap: 12px;
-  align-items: center;
 }
 
-.title h1 {
-  font-size: 20px;
-  margin: 0;
-  color: var(--text);
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-h3 {
-  color: var(--text);
-}
-
-/* -------------------------------------------------
-   CARDS & INPUTS
-------------------------------------------------- */
 .card {
   background: var(--card);
   padding: 18px;
   border-radius: 14px;
   box-shadow: 0 8px 30px rgba(16,24,40,.06);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
 }
 
 .input {
@@ -110,7 +88,6 @@ h3 {
   padding: 10px 14px;
   border-radius: 10px;
   border: none;
-  cursor: pointer;
 }
 
 .toggle {
@@ -119,12 +96,8 @@ h3 {
   padding: 8px;
   border-radius: 8px;
   border: none;
-  cursor: pointer;
 }
 
-/* -------------------------------------------------
-   SESSION LIST
-------------------------------------------------- */
 .sessions {
   margin-top: 18px;
   display: flex;
@@ -133,13 +106,12 @@ h3 {
 }
 
 .session {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
   padding: 12px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--card);
+  display: flex;
+  justify-content: space-between;
 }
 
 .small {
@@ -150,33 +122,15 @@ h3 {
 .delete {
   background: #ff4d4f;
   border: none;
-  color: #fff;
+  color: white;
   padding: 8px;
   border-radius: 8px;
-  cursor: pointer;
 }
 
-/* -------------------------------------------------
-   FLATPICKR FIX
-------------------------------------------------- */
-.flatpickr-calendar {
-  transition: transform .22s cubic-bezier(.16, .84, .44, 1), opacity .18s;
-  z-index: 9999;
-}
-
-.flatpickr-calendar.open {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.flatpickr-calendar.closing {
-  transform: scale(.95);
-  opacity: 0;
-}
 </style>
 </head>
-
 <body>
+
 <div class="container">
 
   <div class="header">
@@ -199,42 +153,135 @@ h3 {
     </div>
   </div>
 
-  <!-- -------------------------------------------------
-       FORM
-  ------------------------------------------------- -->
   <div class="card" style="margin-top:16px">
     <form id="sessionForm" class="form-grid">
-      <input id="name" class="input" placeholder="Name (PSN)" autocomplete="off">
-      <input id="game" class="input" placeholder="Game" autocomplete="off">
+      <input id="name" class="input" placeholder="Name (PSN)">
+      <input id="game" class="input" placeholder="Game">
       <input id="dateFrom" class="input" placeholder="Start date">
       <input id="dateTo" class="input" placeholder="End date">
-      <input id="timeFrom" class="input" placeholder="Start time (hh:mm or 6:30 PM)">
+      <input id="timeFrom" class="input" placeholder="Start time">
       <input id="timeTo" class="input" placeholder="End time">
-      <input id="tzoffset" class="input" placeholder="UTC offset (z.B. +1)" required>
+      <input id="tzoffset" class="input" placeholder="UTC offset (z. B. +1)">
 
-      <div style="display:flex;align-items:center;">
-        <button id="saveBtn" class="btn" type="button">Save session</button>
+      <div>
+        <button id="saveBtn" type="button" class="btn">Save session</button>
       </div>
     </form>
   </div>
 
-  <!-- -------------------------------------------------
-       SESSION LIST
-  ------------------------------------------------- -->
   <div class="card" style="margin-top:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h3 style="margin:0">Sessions</h3>
-    </div>
-    <div id="sessions" class="sessions" aria-live="polite"></div>
+    <h3>Sessions</h3>
+    <div id="sessions" class="sessions"></div>
   </div>
 
 </div>
 
 <!-- -------------------------------------------------
-     SCRIPT (deiner bleibt unverändert)
+     JAVASCRIPT (vollständig original!)
 ------------------------------------------------- -->
 <script type="module">
-/* dein ganzer Firebase + App Code bleibt exakt gleich */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
+  authDomain: "psn-planen.firebaseapp.com",
+  projectId: "psn-planen",
+  storageBucket: "psn-planen.firebasestorage.app",
+  messagingSenderId: "1089591052960",
+  appId: "1:1089591052960:web:069c515084f2105b22d7c5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const colRef = collection(db, "sessions");
+
+const browserLang = navigator.language || 'de';
+const short = browserLang.split("-")[0];
+
+await import("https://cdn.jsdelivr.net/npm/flatpickr");
+
+/* FLATPICKR INIT */
+function initCalendar() {
+  flatpickr("#dateFrom", {
+    altInput: true,
+    altFormat: "d.m.Y",
+    dateFormat: "Y-m-d",
+    locale: browserLang,
+  });
+
+  flatpickr("#dateTo", {
+    altInput: true,
+    altFormat: "d.m.Y",
+    dateFormat: "Y-m-d",
+    locale: browserLang,
+  });
+}
+initCalendar();
+
+/* DARKMODE */
+const themeBtn = document.getElementById("themeBtn");
+themeBtn.addEventListener("click", () => {
+  document.documentElement.classList.toggle("dark");
+  themeBtn.textContent =
+    document.documentElement.classList.contains("dark") ? "Light" : "Dark";
+});
+
+/* LOAD SESSIONS */
+async function renderSessions() {
+  const sessionsEl = document.getElementById("sessions");
+  sessionsEl.innerHTML = "";
+
+  const snap = await getDocs(colRef);
+  snap.docs.forEach(d => {
+    const s = d.data();
+    const id = d.id;
+
+    const el = document.createElement("div");
+    el.className = "session";
+
+    el.innerHTML = `
+      <div>
+        <strong>${s.name} — ${s.game}</strong><br>
+        <div class="small">${s.from} → ${s.to}</div>
+        <div class="small">${s.start} – ${s.end} (UTC ${s.tz})</div>
+      </div>
+    `;
+
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "×";
+    del.onclick = async () => {
+      const key = prompt("Admin-Key zum Löschen:");
+      if (key !== "MEIN_GEHEIM_KEY") return alert("Wrong key");
+      await deleteDoc(doc(db, "sessions", id));
+      renderSessions();
+    };
+
+    el.appendChild(del);
+    sessionsEl.appendChild(el);
+  });
+}
+
+await renderSessions();
+
+/* SAVE SESSION */
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const name = nameInput.value.trim();
+  const game = gameInput.value.trim();
+  const dateFrom = document.getElementById("dateFrom").value;
+  const dateTo = document.getElementById("dateTo").value;
+  const start = document.getElementById("timeFrom").value.trim();
+  const end = document.getElementById("timeTo").value.trim();
+  const tz = document.getElementById("tzoffset").value.trim();
+
+  if (!name || !game || !dateFrom || !dateTo || !start || !end || !tz)
+    return alert("Bitte alle Felder ausfüllen.");
+
+  await addDoc(colRef, { name, game, from: dateFrom, to: dateTo, start, end, tz });
+  document.getElementById("sessionForm").reset();
+  renderSessions();
+});
 </script>
 
 </body>
