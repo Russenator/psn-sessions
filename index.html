@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -43,7 +44,6 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
       </select>
     </div>
   </div>
-
   <div class="card" style="margin-top:16px">
     <form id="sessionForm" class="form-grid">
       <input id="name" class="input" placeholder="Name (PSN)" autocomplete="off">
@@ -56,7 +56,6 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
       <div style="display:flex;align-items:center;"> <button id="saveBtn" class="btn" type="button">Save session</button></div>
     </form>
   </div>
-
   <div class="card" style="margin-top:16px">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h3 style="margin:0">Sessions</h3>
@@ -64,32 +63,25 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
     <div id="sessions" class="sessions" aria-live="polite"></div>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
 const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen", storageBucket: "psn-planen.firebasestorage.app", messagingSenderId: "1089591052960", appId: "1:1089591052960:web:069c515084f2105b22d7c5" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db,'sessions');
-
 const browserLang = navigator.language || 'de';
 const short = browserLang.split('-')[0];
 const use12h = new Intl.DateTimeFormat(browserLang, { hour:'numeric' }).formatToParts(new Date()).some(p=>p.type==='dayPeriod');
-
 const dateFrom = document.getElementById('dateFrom');
 const dateTo = document.getElementById('dateTo');
 const tzInput = document.getElementById('tzoffset');
 const sessionsEl = document.getElementById('sessions');
 const autoOffset = -new Date().getTimezoneOffset()/60;
-function formatOffset(v){ const num = Number(v); if(isNaN(num)) return ''; return (num>=0?'+':'')+num; }
+function formatOffset(v){ const num = Number(v); if(isNaN(num)) return '; return (num>=0?'+':')+num; }
 tzInput.value = formatOffset(autoOffset);
-
 await import('https://cdn.jsdelivr.net/npm/flatpickr');
-
 function getLocale(){ const sel = document.getElementById('langSelect').value; if(sel==='auto') return browserLang; return sel; }
-
 function initCalendar(){ 
   const locale = getLocale();
   flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, allowInput:true, "locale": {firstDayOfWeek:1} });
@@ -97,58 +89,18 @@ function initCalendar(){
 }
 initCalendar();
 document.getElementById('langSelect').addEventListener('change', ()=>{ initCalendar(); });
-
 const themeBtn = document.getElementById('themeBtn');
 themeBtn.addEventListener('click', ()=>{
   document.documentElement.classList.toggle('dark');
   themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
 });
-
 function convertToLocalTime(t, tz){
   try{
-    if(!t) return '';
+    if(!t) return ';
     const offset = parseFloat(tz);
     let [h,m,period] = t.split(/[: ]/);
     h = Number(h); m = Number(m)||0;
     if(period && period.toLowerCase()==='pm' && h<12) h+=12;
     if(period && period.toLowerCase()==='am' && h===12) h=0;
     const remote = new Date();
-    remote.setHours(h - offset + autoOffset, m, 0, 0);
-    return remote;
-  } catch(e){ return ''; }
-}
-
-async function loadSessions(){
-  sessionsEl.innerHTML = '';
-  const snap = await getDocs(colRef);
-  snap.forEach(docu=>{
-    const d = docu.data();
-    const from = convertToLocalTime(d.timeFrom, d.tzoffset);
-    const to = convertToLocalTime(d.timeTo, d.tzoffset);
-    const div = document.createElement('div');
-    div.className='session';
-    div.innerHTML = `<div><strong>${d.name}</strong> — ${d.game}<br><span class="small">${d.dateFrom} → ${d.dateTo}<br>${from} – ${to} (UTC${formatOffset(d.tzoffset)})</span></div>
-                     <button class="delete">X</button>`;
-    div.querySelector('.delete').addEventListener('click', async()=>{
-      await deleteDoc(doc(colRef, docu.id)); loadSessions();
-    });
-    sessionsEl.appendChild(div);
-  });
-}
-loadSessions();
-
-saveBtn.addEventListener('click', async()=>{
-  const d={
-    name:name.value.trim(), game:game.value.trim(),
-    dateFrom:dateFrom.value, dateTo:dateTo.value,
-    timeFrom:timeFrom.value.trim(), timeTo:timeTo.value.trim(),
-    tzoffset:tzInput.value.trim()
-  };
-  await addDoc(colRef,d);
-  loadSessions();
-  document.getElementById('sessionForm').reset();
-  tzInput.value = formatOffset(autoOffset);
-});
-</script>
-</body>
-</html>
+    remote.setHours(h - offset + autoOffset, m, 0, 0
