@@ -25,6 +25,14 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
 .delete{background:#ff4d4f;border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
 .toggle{background:#111;color:#fff;padding:8px;border-radius:8px;border:none}
 .dark{--bg:#0b1220;--card:#0f1724;color:#e6eef8}
+
+/* ⭐ DARKMODE FIX FOR TITLES */
+@media (prefers-color-scheme: dark) {
+  h1, h3, .title h1 {
+    color: #ffffff !important;
+  }
+}
+
 .flatpickr-calendar{transition:transform .22s cubic-bezier(.16,.84,.44,1),opacity .18s;z-index:9999;}
 .flatpickr-calendar.open{transform:scale(1);opacity:1}
 .flatpickr-calendar.closing{transform:scale(.95);opacity:0}
@@ -93,7 +101,7 @@ function getLocale(){ const sel = document.getElementById('langSelect').value; i
 function initCalendar(){ 
   const locale = getLocale();
   flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, allowInput:true, "locale": {firstDayOfWeek:1} });
-  flatpickr(dateTo, { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, allowInput:true, "locale": {firstDayOfWeek:1} });
+  flatpickr(dateTo,   { altInput:true, altFormat: locale.startsWith('de')? 'd.m.Y':'F j, Y', dateFormat:'Y-m-d', locale, allowInput:true, "locale": {firstDayOfWeek:1} });
 }
 initCalendar();
 document.getElementById('langSelect').addEventListener('change', ()=>{ initCalendar(); });
@@ -104,17 +112,39 @@ themeBtn.addEventListener('click', ()=>{
   themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
 });
 
+/* ⭐ NEW: UNIVERSALLY SAFE DATE PARSER */
+function parseDateInput(dateStr, timeStr){
+  const parts = dateStr.includes('.') 
+    ? dateStr.split('.')
+    : dateStr.split('-');
+
+  let day, month, year;
+
+  if(dateStr.includes('.')){
+    [day, month, year] = parts.map(Number);
+  } else {
+    [year, month, day] = parts.map(Number);
+  }
+
+  let [h,m,period] = timeStr.split(/[: ]/);
+  h = Number(h); m = Number(m)||0;
+
+  if(period && period.toLowerCase()==='pm' && h<12) h+=12;
+  if(period && period.toLowerCase()==='am' && h===12) h=0;
+
+  return new Date(Date.UTC(year, month-1, day, h, m));
+}
+
 function convertToLocalTime(t, tz){
   try{
     if(!t) return '';
     const offset = parseFloat(tz);
-    let [h,m,period] = t.split(/[: ]/);
-    h = Number(h); m = Number(m)||0;
-    if(period && period.toLowerCase()==='pm' && h<12) h+=12;
-    if(period && period.toLowerCase()==='am' && h===12) h=0;
-    const remote = new Date();
-    remote.setHours(h - offset + autoOffset, m, 0, 0);
-    return remote.toLocaleTimeString(getLocale(), {hour:'2-digit', minute:'2-digit'});
+
+    const d = parseDateInput("01.01.2000", t); // nur Uhrzeit nutzen
+    if(isNaN(d)) return t;
+
+    const local = new Date(d.getTime() - offset*3600*1000 + autoOffset*3600*1000);
+    return local.toLocaleTimeString(getLocale(), {hour:'2-digit', minute:'2-digit'});
   }catch{ return t; }
 }
 
@@ -122,21 +152,48 @@ async function renderSessions(){
   sessionsEl.innerHTML = '';
   try{
     const snap = await getDocs(colRef);
-    if(!snap || !snap.docs || snap.docs.length===0){ sessionsEl.innerHTML = '<div class="small">No sessions</div>'; return; }
+    if(!snap || !snap.docs || snap.docs.length===0){
+      sessionsEl.innerHTML = '<div class="small">No sessions</div>'; 
+      return;
+    }
+
     snap.docs.forEach(d=>{
-      const s = d.data(); const id = d.id;
-      const wrap = document.createElement("div"); wrap.className='session';
+      const s = d.data(); 
+      const id = d.id;
+
+      const wrap = document.createElement("div"); 
+      wrap.className='session';
+
+      /* ⭐ Fix: safe time parsing */
       const localStart = convertToLocalTime(s.start, s.tz);
       const localEnd = convertToLocalTime(s.end, s.tz);
+
       const left = document.createElement("div");
-      left.innerHTML = `<div style="font-weight:600">${s.name} — ${s.game}</div><div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div><div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>`;
+      left.innerHTML = `
+        <div style="font-weight:600">${s.name} — ${s.game}</div>
+        <div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div>
+        <div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>
+      `;
+
       const del = document.createElement("button");
-      del.className='delete'; del.textContent='×'; del.title = 'Delete';
-      del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'MEIN_GEHEIM_KEY') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); };
-      wrap.appendChild(left); wrap.appendChild(del);
+      del.className='delete'; 
+      del.textContent='×'; 
+      del.title = 'Delete';
+      del.onclick = async ()=>{
+        const key = prompt('Admin-Key zum Löschen:');
+        if(key !== 'MEIN_GEHEIM_KEY') return alert('Wrong key');
+        await deleteDoc(doc(db,'sessions',id)); 
+        await renderSessions();
+      };
+
+      wrap.appendChild(left); 
+      wrap.appendChild(del);
       sessionsEl.appendChild(wrap);
     });
-  }catch(e){ console.error(e); sessionsEl.innerHTML = '<div class="small">Error loading sessions</div>'; }
+  }catch(e){
+    console.error(e); 
+    sessionsEl.innerHTML = '<div class="small">Error loading sessions</div>';
+  }
 }
 
 function formatDateDisplay(val){
@@ -156,13 +213,19 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const start = document.getElementById('timeFrom').value.trim();
   const end = document.getElementById('timeTo').value.trim();
   const tz = document.getElementById('tzoffset').value.trim();
-  if(!name||!game||!from||!to||!start||!end||tz==='') return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)');
+
+  if(!name||!game||!from||!to||!start||!end||tz==='') 
+    return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)');
+
   try{
     await addDoc(colRef,{name,game,from,to,start,end,tz});
     document.getElementById('sessionForm').reset();
     document.getElementById('tzoffset').value = formatOffset(autoOffset);
     await renderSessions();
-  }catch(e){ console.error(e); alert('Save failed'); }
+  }catch(e){
+    console.error(e); 
+    alert('Save failed');
+  }
 });
 
 await renderSessions();
