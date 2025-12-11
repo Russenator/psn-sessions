@@ -113,4 +113,42 @@ function convertToLocalTime(t, tz){
     if(period && period.toLowerCase()==='pm' && h<12) h+=12;
     if(period && period.toLowerCase()==='am' && h===12) h=0;
     const remote = new Date();
-    remote.setHours(h - offset + autoOffset, m, 0, 0
+    remote.setHours(h - offset + autoOffset, m, 0, 0);
+    return remote;
+  } catch(e){ return ''; }
+}
+
+async function loadSessions(){
+  sessionsEl.innerHTML = '';
+  const snap = await getDocs(colRef);
+  snap.forEach(docu=>{
+    const d = docu.data();
+    const from = convertToLocalTime(d.timeFrom, d.tzoffset);
+    const to = convertToLocalTime(d.timeTo, d.tzoffset);
+    const div = document.createElement('div');
+    div.className='session';
+    div.innerHTML = `<div><strong>${d.name}</strong> — ${d.game}<br><span class="small">${d.dateFrom} → ${d.dateTo}<br>${from} – ${to} (UTC${formatOffset(d.tzoffset)})</span></div>
+                     <button class="delete">X</button>`;
+    div.querySelector('.delete').addEventListener('click', async()=>{
+      await deleteDoc(doc(colRef, docu.id)); loadSessions();
+    });
+    sessionsEl.appendChild(div);
+  });
+}
+loadSessions();
+
+saveBtn.addEventListener('click', async()=>{
+  const d={
+    name:name.value.trim(), game:game.value.trim(),
+    dateFrom:dateFrom.value, dateTo:dateTo.value,
+    timeFrom:timeFrom.value.trim(), timeTo:timeTo.value.trim(),
+    tzoffset:tzInput.value.trim()
+  };
+  await addDoc(colRef,d);
+  loadSessions();
+  document.getElementById('sessionForm').reset();
+  tzInput.value = formatOffset(autoOffset);
+});
+</script>
+</body>
+</html>
