@@ -57,7 +57,7 @@ body {
 .delete { background: #ff4d4f; border: none; color: white; padding: 8px; border-radius: 8px; cursor: pointer; }
 .toggle { background: #111; color: #fff; padding: 8px; border-radius: 8px; border: none; }
 
-/* DARK MODE FIXED */
+/* DARK MODE */
 .dark {
   --bg: #0b1220;
   --card: #0f1724;
@@ -74,7 +74,6 @@ body {
 .dark .input { background: #1a2336; color: var(--text); border-color: #2d3a55; }
 .dark .btn { background: #2f5cff; }
 .dark .card { background: var(--card); }
-
 </style>
 </head>
 <body>
@@ -122,13 +121,11 @@ body {
   </div>
 </div>
 
-
 <script type="module">
-/* ============================
-   FIREBASE INITIALISIERUNG
-============================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import flatpickr from "https://cdn.jsdelivr.net/npm/flatpickr";
+import { German } from "https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
@@ -143,145 +140,86 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db, "sessions");
 
-/* ============================
-   SPRACHE & OFFSET
-============================= */
+/* Sprache & Offset */
 const browserLang = navigator.language || "de";
 const autoOffset = -new Date().getTimezoneOffset() / 60;
 function formatOffset(v){ const n = Number(v); return (n>=0?"+":"") + n; }
-document.getElementById("tzoffset").value = formatOffset(autoOffset);
+tzoffset.value = formatOffset(autoOffset);
 
-/* ============================
-   FLATPICKR
-============================= */
-await import("https://cdn.jsdelivr.net/npm/flatpickr");
-
+/* Flatpickr */
 function getLocale(){
-  const sel = document.getElementById("langSelect").value;
-  return sel === "auto" ? browserLang : sel;
+  const sel = langSelect.value;
+  if(sel === "de") return German;
+  if(sel === "en") return flatpickr.l10ns.default;
+  return browserLang.startsWith("de") ? German : flatpickr.l10ns.default;
 }
 
-function initCalendar() {
+function initCalendar(){
   const locale = getLocale();
-
-  flatpickr(dateFrom, {
-    altInput: true,
-    altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
-    dateFormat: "Y-m-d",
-    allowInput: true,
-
-    onChange: (_, dateStr) => dateFrom.value = dateStr,
-    onClose:  (_, dateStr) => dateFrom.value = dateStr,
-    onValueUpdate: (_, dateStr) => dateFrom.value = dateStr
-  });
-
-  flatpickr(dateTo, {
-    altInput: true,
-    altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
-    dateFormat: "Y-m-d",
-    allowInput: true,
-
-    onChange: (_, dateStr) => dateTo.value = dateStr,
-    onClose:  (_, dateStr) => dateTo.value = dateStr,
-    onValueUpdate: (_, dateStr) => dateTo.value = dateStr
-  });
+  flatpickr(dateFrom, { altInput:true, altFormat: locale===German?"d.m.Y":"F j, Y", dateFormat:"Y-m-d", allowInput:true, locale });
+  flatpickr(dateTo, { altInput:true, altFormat: locale===German?"d.m.Y":"F j, Y", dateFormat:"Y-m-d", allowInput:true, locale });
 }
 initCalendar();
 langSelect.addEventListener("change", initCalendar);
 
-/* ============================
-   DARKMODE
-============================= */
-themeBtn.addEventListener("click",()=>{
+/* Darkmode */
+themeBtn.addEventListener("click", ()=>{
   document.documentElement.classList.toggle("dark");
   themeBtn.textContent = document.documentElement.classList.contains("dark") ? "Light" : "Dark";
 });
 
-/* ============================
-   ZEIT-UMRECHNUNG FIX
-============================= */
+/* Zeit-Umrechnung */
 function convertToLocalTime(t, tz){
-  if (!t || t.trim()==="") return "";
+  if(!t || t.trim()==="") return "";
   const parts = t.trim().split(/[: ]+/);
-
   let h = Number(parts[0]);
-  let m = Number(parts[1]) || 0;
-  let period = parts[2] ? parts[2].toLowerCase() : null;
-
-  if (period === "pm" && h < 12) h += 12;
-  if (period === "am" && h === 12) h = 0;
-
+  let m = Number(parts[1]||0);
+  let period = parts[2]?parts[2].toLowerCase():null;
+  if(period==="pm" && h<12) h+=12;
+  if(period==="am" && h===12) h=0;
   const d = new Date();
-  d.setHours(h - parseFloat(tz) + autoOffset, m, 0, 0);
-
-  return d.toLocaleTimeString(getLocale(), { hour:"2-digit", minute:"2-digit" });
+  d.setHours(h - parseFloat(tz) + autoOffset, m,0,0);
+  return d.toLocaleTimeString(getLocale()==German?"de-DE":"en-US",{hour:"2-digit",minute:"2-digit"});
 }
 
-/* ============================
-   LADEN DER SESSIONS
-============================= */
+/* Laden der Sessions */
 async function loadSessions(){
-  const list = document.getElementById("sessions");
-  const b2 = document.getElementById("b2list");
-  list.innerHTML = "";
-  b2.innerHTML = "";
+  const list = sessions;
+  const b2 = b2list;
+  list.innerHTML = ""; b2.innerHTML = "";
 
   const snap = await getDocs(colRef);
-  if (snap.empty){
-    list.innerHTML = "<div class='small'>Keine Sessions</div>";
-    return;
-  }
+  if(snap.empty){ list.innerHTML="<div class='small'>Keine Sessions</div>"; return; }
 
   const groups = {};
-
-  snap.forEach(d=>{
-    const data = d.data();
-    if (!groups[data.game]) groups[data.game] = [];
-    groups[data.game].push({ id:d.id, data });
-  });
+  snap.forEach(d=>{ const data=d.data(); if(!groups[data.game]) groups[data.game]=[]; groups[data.game].push({id:d.id,data}); });
 
   Object.keys(groups).sort().forEach(game=>{
     const header = document.createElement("div");
-    header.className = "session";
-    header.innerHTML = `<strong>${game}</strong>`;
+    header.className="session"; header.innerHTML=`<strong>${game}</strong>`;
     list.appendChild(header);
 
     groups[game].forEach(entry=>{
-      const d = entry.data;
-
-      const date1 = d.dateFrom ? new Date(d.dateFrom).toLocaleDateString(getLocale(),{
-        weekday:"short", year:"numeric", month:"2-digit", day:"2-digit"
-      }) : "";
-
-      const date2 = d.dateTo ? new Date(d.dateTo).toLocaleDateString(getLocale(),{
-        weekday:"short", year:"numeric", month:"2-digit", day:"2-digit"
-      }) : "";
-
-      const t1 = convertToLocalTime(d.timeFrom, d.tzoffset);
-      const t2 = convertToLocalTime(d.timeTo, d.tzoffset);
+      const d=entry.data;
+      const date1=d.dateFrom?new Date(d.dateFrom).toLocaleDateString(getLocale()==German?"de-DE":"en-US",{weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}):"";
+      const date2=d.dateTo?new Date(d.dateTo).toLocaleDateString(getLocale()==German?"de-DE":"en-US",{weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}):"";
+      const t1 = convertToLocalTime(d.timeFrom,d.tzoffset);
+      const t2 = convertToLocalTime(d.timeTo,d.tzoffset);
 
       const row = document.createElement("div");
-      row.className = "session";
-      row.style.marginLeft = "18px";
-      row.innerHTML = `
-        <div>
-          <strong>${d.name}</strong><br>
-          <span class="small">
-            ${date1} → ${date2}<br>
-            ${t1} – ${t2} (UTC${formatOffset(d.tzoffset)})
-          </span>
-        </div>
-        <button class="delete">X</button>
-      `;
+      row.className="session"; row.style.marginLeft="18px";
+      row.innerHTML=`<div><strong>${d.name}</strong><br>
+        <span class="small">${date1} → ${date2}<br>${t1} – ${t2} (UTC${formatOffset(d.tzoffset)})</span></div>
+        <button class="delete">X</button>`;
 
-      row.querySelector(".delete").onclick = async()=>{
+      row.querySelector(".delete").onclick=async()=>{
         await deleteDoc(doc(db,"sessions",entry.id));
         loadSessions();
       };
 
       list.appendChild(row);
 
-      if (game.toLowerCase() === "b2" || game.toLowerCase() === "kategorie b2"){
+      if(game.toLowerCase()==="b2"||game.toLowerCase()==="kategorie b2"){
         const b2row = row.cloneNode(true);
         b2.appendChild(b2row);
       }
@@ -290,27 +228,23 @@ async function loadSessions(){
 }
 loadSessions();
 
-/* ============================
-   STORAGE — SPEICHERN
-============================= */
+/* Speichern */
 saveBtn.addEventListener("click", async()=>{
-  const d = {
-    name: name.value.trim(),
-    game: game.value.trim(),
-    dateFrom: dateFrom.value,
-    dateTo: dateTo.value,
-    timeFrom: timeFrom.value.trim(),
-    timeTo: timeTo.value.trim(),
-    tzoffset: tzoffset.value.trim()
+  const d={
+    name:name.value.trim(),
+    game:game.value.trim(),
+    dateFrom:dateFrom.value,
+    dateTo:dateTo.value,
+    timeFrom:timeFrom.value.trim(),
+    timeTo:timeTo.value.trim(),
+    tzoffset:tzoffset.value.trim()
   };
-
-  if (!d.name || !d.game || !d.dateFrom || !d.dateTo || !d.timeFrom || !d.timeTo || !d.tzoffset){
+  if(!d.name||!d.game||!d.dateFrom||!d.dateTo||!d.timeFrom||!d.timeTo||!d.tzoffset){
     return alert("Bitte alles ausfüllen!");
   }
-
-  await addDoc(colRef, d);
+  await addDoc(colRef,d);
   sessionForm.reset();
-  tzoffset.value = formatOffset(autoOffset);
+  tzoffset.value=formatOffset(autoOffset);
   loadSessions();
 });
 </script>
