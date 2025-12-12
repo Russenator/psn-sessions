@@ -123,19 +123,38 @@ async function loadSessions(){
   const snap=await getDocs(colRef);
   if(snap.empty){ sessionsEl.innerHTML='<div class="small">No sessions</div>'; return; }
 
+  const groups={};
   snap.forEach(docu=>{
     const d=docu.data();
-    const fromDate=d.dateFrom?new Date(d.dateFrom).toLocaleDateString(getLocale(),{weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}):'';
-    const toDate=d.dateTo?new Date(d.dateTo).toLocaleDateString(getLocale(),{weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}):'';
-    const fromTime=convertToLocalTime(d.timeFrom,d.tzoffset);
-    const toTime=convertToLocalTime(d.timeTo,d.tzoffset);
+    if(!groups[d.game]) groups[d.game]=[];
+    groups[d.game].push({id:docu.id,data:d});
+  });
 
-    const box=document.createElement('div'); box.className='session';
-    box.innerHTML=`<div><strong>${d.name}</strong> — ${d.game}<br>
-    <span class="small">${fromDate} → ${toDate}<br>${fromTime} – ${toTime} (UTC${formatOffset(d.tzoffset)})</span></div>
-    <button class="delete">X</button>`;
+  Object.keys(groups).sort().forEach(game=>{
+    const gameBox=document.createElement('div');
+    gameBox.className='session';
+    gameBox.innerHTML=`<strong>${game}</strong>`;
+    sessionsEl.appendChild(gameBox);
 
-    box.querySelector('.delete').onclick=async()=>{ await deleteDoc(doc(db,'sessions',docu.id)); loadSessions(); };
+    groups[game].forEach(entry=>{
+      const d=entry.data;
+      const fromDate=d.dateFrom?new Date(d.dateFrom).toLocaleDateString(getLocale(),{weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}):'';
+      const toDate=d.dateTo?new Date(d.dateTo).toLocaleDateString(getLocale(),{weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}):'';
+      const fromTime=convertToLocalTime(d.timeFrom,d.tzoffset);
+      const toTime=convertToLocalTime(d.timeTo,d.tzoffset);
+
+      const box=document.createElement('div'); box.className='session';
+      box.style.marginLeft='18px';
+      box.innerHTML=`<div><strong>${d.name}</strong><br>
+      <span class="small">${fromDate} → ${toDate}<br>${fromTime} – ${toTime} (UTC${formatOffset(d.tzoffset)})</span></div>
+      <button class="delete">X</button>`;
+
+      box.querySelector('.delete').onclick=async()=>{ await deleteDoc(doc(db,'sessions',entry.id)); loadSessions(); };
+      sessionsEl.appendChild(box);
+    });
+  });
+}
+loadSessions(); };
     sessionsEl.appendChild(box);
   });
 }
