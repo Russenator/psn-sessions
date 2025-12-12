@@ -161,25 +161,29 @@ function getLocale(){
   return sel === "auto" ? browserLang : sel;
 }
 
-function initCalendar(){
+function initCalendar() {
   const locale = getLocale();
 
-  flatpickr(dateFrom,{
-    altInput:true,
+  flatpickr(dateFrom, {
+    altInput: true,
     altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
-    dateFormat:"Y-m-d",
-    allowInput:true,
-    onChange:(_,dateStr)=> dateFrom.value=dateStr,
-    onClose:(_,dateStr)=> dateFrom.value=dateStr
+    dateFormat: "Y-m-d",
+    allowInput: true,
+
+    onChange: (_, dateStr) => dateFrom.value = dateStr,
+    onClose:  (_, dateStr) => dateFrom.value = dateStr,
+    onValueUpdate: (_, dateStr) => dateFrom.value = dateStr
   });
 
-  flatpickr(dateTo,{
-    altInput:true,
+  flatpickr(dateTo, {
+    altInput: true,
     altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
-    dateFormat:"Y-m-d",
-    allowInput:true,
-    onChange:(_,dateStr)=> dateTo.value=dateStr,
-    onClose:(_,dateStr)=> dateTo.value=dateStr
+    dateFormat: "Y-m-d",
+    allowInput: true,
+
+    onChange: (_, dateStr) => dateTo.value = dateStr,
+    onClose:  (_, dateStr) => dateTo.value = dateStr,
+    onValueUpdate: (_, dateStr) => dateTo.value = dateStr
   });
 }
 initCalendar();
