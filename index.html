@@ -120,14 +120,23 @@ function convertToLocalTime(t, tz){
 
 async function loadSessions(){
   sessionsEl.innerHTML = '';
-  const snap = await getDocs(colRef);
-  snap.forEach(docu=>{
-    const d = docu.data();
-    const from = convertToLocalTime(d.timeFrom, d.tzoffset);
-    const to = convertToLocalTime(d.timeTo, d.tzoffset);
-    const div = document.createElement('div');
-    div.className='session';
-    div.innerHTML = `<div><strong>${d.name}</strong> — ${d.game}<br><span class="small">${d.dateFrom} → ${d.dateTo}<br>${from} – ${to} (UTC${formatOffset(d.tzoffset)})</span></div>
+  getDocs(colRef).then(snap=>{
+    snap.forEach(docu=>{
+      const d = docu.data();
+      const localFrom = d.dateFrom ? new Date(d.dateFrom).toLocaleDateString(getLocale(), {weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}) : '';
+      const localTo = d.dateTo ? new Date(d.dateTo).toLocaleDateString(getLocale(), {weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'}) : '';
+      const fromTime = convertToLocalTime(d.timeFrom, d.tzoffset)?.toLocaleTimeString(getLocale(),{hour:'2-digit',minute:'2-digit'}) || '';
+      const toTime = convertToLocalTime(d.timeTo, d.tzoffset)?.toLocaleTimeString(getLocale(),{hour:'2-digit',minute:'2-digit'}) || '';
+
+      const div=document.createElement('div'); div.className='session';
+      div.innerHTML=`<div><strong>${d.name}</strong> — ${d.game}<br>
+        <span class="small">${localFrom} → ${localTo}<br>${fromTime} – ${toTime} (UTC${formatOffset(d.tzoffset)})</span></div>
+        <button class="delete">X</button>`;
+      div.querySelector('.delete').onclick=async()=>{ await deleteDoc(doc(colRef,docu.id)); loadSessions(); };
+      sessionsEl.appendChild(div);
+    });
+  });
+}</strong> — ${d.game}<br><span class="small">${d.dateFrom} → ${d.dateTo}<br>${from} – ${to} (UTC${formatOffset(d.tzoffset)})</span></div>
                      <button class="delete">X</button>`;
     div.querySelector('.delete').addEventListener('click', async()=>{
       await deleteDoc(doc(colRef, docu.id)); loadSessions();
