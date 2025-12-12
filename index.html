@@ -9,8 +9,21 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <style>
-:root { --bg:#f4f8ff; --card:#fff; --accent:#4a8bff; --muted:#6b7280; }
-body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#0f172a}
+:root {
+  --bg:#f4f8ff;
+  --card:#fff;
+  --text:#0f172a;
+  --accent:#4a8bff;
+  --muted:#6b7280;
+}
+
+/* Allgemeines Layout */
+body{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+}
 .container{max-width:900px;margin:28px auto;padding:20px}
 .header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .title{display:flex;gap:12px;align-items:center}
@@ -20,25 +33,54 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .input{width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefc}
 .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
-.row{display:flex;gap:12px;align-items:center}
 .sessions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
 .session{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid #eef4ff;background:linear-gradient(180deg,#fff,#fbfdff)}
 .small{font-size:13px;color:var(--muted)}
 .delete{background:#ff4d4f;border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
 .toggle{background:#111;color:#fff;padding:8px;border-radius:8px;border:none}
-.dark{--bg:#0b1220;--card:#0f1724;color:#e6eef8}
-.flatpickr-calendar{transition:transform .22s cubic-bezier(.16,.84,.44,1),opacity .18s;z-index:9999;}
-.flatpickr-calendar.open{transform:scale(1);opacity:1}
-.flatpickr-calendar.closing{transform:scale(.95);opacity:0}
+
+/* Darkmode */
+.dark {
+  --bg:#0b1220;
+  --card:#0f1724;
+  --text:#e6eef8;
+}
+
+.dark body,
+.dark h1,
+.dark h3,
+.dark strong,
+.dark span,
+.dark .session {
+  color:var(--text) !important;
+}
+
+.dark .session {
+  background:#131b2c !important;
+  border-color:#1f2940 !important;
+}
+
+.dark .input{
+  background:#192235;
+  color:#e6eef8;
+  border-color:#2a3550;
+}
+
+.dark .btn{ background:#4a8bff }
+
 </style>
 </head>
 
 <body>
 <div class="container">
 
+  <!-- HEADER -->
   <div class="header">
     <div class="title">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 11h5v5H7z"fill="#4a8bff"/><path d="M3 5h18v16H3z"stroke="#4a8bff"stroke-width="1.2"fill="none"/></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M7 11h5v5H7z" fill="#4a8bff"/>
+        <path d="M3 5h18v16H3z" stroke="#4a8bff" stroke-width="1.2" fill="none"/>
+      </svg>
       <h1>Sitzungsplaner — stabile Version</h1>
     </div>
 
@@ -52,14 +94,14 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
     </div>
   </div>
 
-  <!-- --- Eingabeformular --- -->
+  <!-- FORMULAR -->
   <div class="card" style="margin-top:16px">
     <form id="sessionForm" class="form-grid">
       <input id="name" class="input" placeholder="Name (PSN)" autocomplete="off">
       <input id="game" class="input" placeholder="Game" autocomplete="off">
       <input id="dateFrom" class="input" placeholder="Start date">
       <input id="dateTo" class="input" placeholder="End date">
-      <input id="timeFrom" class="input" placeholder="Start time (hh:mm or 6:30 PM)">
+      <input id="timeFrom" class="input" placeholder="Start time">
       <input id="timeTo" class="input" placeholder="End time">
       <input id="tzoffset" class="input" placeholder="UTC offset (z.B. +1)" required>
       <div style="display:flex;align-items:center;">
@@ -68,49 +110,44 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
     </form>
   </div>
 
-  <!-- --- Sessions --- -->
+  <!-- SESSION LIST -->
   <div class="card" style="margin-top:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h3 style="margin:0">Sessions</h3>
-    </div>
+    <h3 style="margin:0">Sessions</h3>
     <div id="sessions" class="sessions" aria-live="polite"></div>
   </div>
 
-  <!-- --- Kategorie B2 (Platzhalter) --- -->
+  <!-- Kategorie B2 -->
   <div class="card" style="margin-top:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h3 style="margin:0">Kategorie B2</h3>
-    </div>
+    <h3 style="margin:0">Kategorie B2</h3>
     <div id="b2list" class="sessions" aria-live="polite"></div>
   </div>
 
 </div>
 
-<!-- ---------- JAVASCRIPT ---------- -->
-
+<!-- JavaScript -->
 <script type="module">
 
 /* --- Firebase --- */
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
-  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = { 
+const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
   authDomain: "psn-planen.firebaseapp.com",
   projectId: "psn-planen",
   storageBucket: "psn-planen.firebasestorage.app",
   messagingSenderId: "1089591052960",
-  appId: "1:1089591052960:web:069c515084f2105b22d7c5" 
+  appId: "1:1089591052960:web:069c515084f2105b22d7c5"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db, "sessions");
 
-/* --- Sprache / Zeitzone --- */
+/* --- Sprache & Zeitzone --- */
 const browserLang = navigator.language || "de";
-const autoOffset = -new Date().getTimezoneOffset() / 60;
+const autoOffset = -new Date().getTimezoneOffset()/60;
 
 function formatOffset(v){
   const num = Number(v);
@@ -118,13 +155,13 @@ function formatOffset(v){
   return (num >= 0 ? "+" : "") + num;
 }
 
-document.getElementById("tzoffset").value = formatOffset(autoOffset);
+tzoffset.value = formatOffset(autoOffset);
 
-/* --- Flatpickr laden --- */
+/* --- Flatpickr --- */
 await import("https://cdn.jsdelivr.net/npm/flatpickr");
 
 function getLocale(){
-  const sel = document.getElementById("langSelect").value;
+  const sel = langSelect.value;
   return sel === "auto" ? browserLang : sel;
 }
 
@@ -135,42 +172,42 @@ function initCalendar(){
     altInput:true,
     altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
     dateFormat:"Y-m-d",
-    allowInput:true
+    allowInput:true,
+    onClose:(d,str)=> dateFrom.value=str
   });
 
   flatpickr(dateTo, {
     altInput:true,
     altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
     dateFormat:"Y-m-d",
-    allowInput:true
+    allowInput:true,
+    onClose:(d,str)=> dateTo.value=str
   });
 }
 
 initCalendar();
 langSelect.addEventListener("change", initCalendar);
 
-/* --- Dark Mode --- */
-themeBtn.addEventListener("click", () => {
+/* --- Darkmode --- */
+themeBtn.addEventListener("click",()=>{
   document.documentElement.classList.toggle("dark");
-  themeBtn.textContent = 
+  themeBtn.textContent =
     document.documentElement.classList.contains("dark") ? "Light" : "Dark";
 });
 
-/* --- Zeit-Konvertierung --- */
+/* --- Zeit-Umrechnung --- */
 function convertToLocalTime(t, tz){
   if (!t) return "";
 
   const offset = parseFloat(tz);
-  let [h, m, period] = t.split(/[: ]/);
+  const parts = t.trim().split(/[: ]+/);
 
-  h = Number(h);
-  m = Number(m) || 0;
+  let h = Number(parts[0]);
+  let m = Number(parts[1]) || 0;
+  let period = parts[2] ? parts[2].toLowerCase() : null;
 
-  if (period){
-    period = period.toLowerCase();
-    if (period === "pm" && h < 12) h += 12;
-    if (period === "am" && h === 12) h = 0;
-  }
+  if (period === "pm" && h < 12) h += 12;
+  if (period === "am" && h === 12) h = 0;
 
   const d = new Date();
   d.setHours(h - offset + autoOffset, m, 0, 0);
@@ -184,27 +221,26 @@ async function loadSessions(){
   sessionsEl.innerHTML = "";
 
   const snap = await getDocs(colRef);
-
   if (snap.empty){
-    sessionsEl.innerHTML = '<div class="small">No sessions</div>';
+    sessionsEl.innerHTML = "<div class='small'>No sessions</div>";
     return;
   }
 
   const groups = {};
 
-  snap.forEach(docu => {
+  snap.forEach(docu=>{
     const d = docu.data();
     if (!groups[d.game]) groups[d.game] = [];
-    groups[d.game].push({ id: docu.id, data: d });
+    groups[d.game].push({ id:docu.id, data:d });
   });
 
-  Object.keys(groups).sort().forEach(game => {
+  Object.keys(groups).sort().forEach(game=>{
     const gameBox = document.createElement("div");
     gameBox.className = "session";
     gameBox.innerHTML = `<strong>${game}</strong>`;
     sessionsEl.appendChild(gameBox);
 
-    groups[game].forEach(entry => {
+    groups[game].forEach(entry=>{
       const d = entry.data;
 
       const fromDate = d.dateFrom
@@ -233,29 +269,29 @@ async function loadSessions(){
         <button class="delete">X</button>
       `;
 
-      box.querySelector(".delete").onclick = async () => {
-        await deleteDoc(doc(db, "sessions", entry.id));
+      box.querySelector(".delete").onclick = async ()=>{
+        await deleteDoc(doc(db,"sessions",entry.id));
         loadSessions();
       };
 
       sessionsEl.appendChild(box);
     });
-
   });
 }
 
 loadSessions();
 
-/* --- Neue Session speichern --- */
-saveBtn.addEventListener("click", async () => {
+/* --- Speichern --- */
+saveBtn.addEventListener("click", async()=>{
+
   const d = {
-    name: name.value.trim(),
-    game: game.value.trim(),
-    dateFrom: dateFrom.value,
-    dateTo: dateTo.value,
-    timeFrom: timeFrom.value.trim(),
-    timeTo: timeTo.value.trim(),
-    tzoffset: tzoffset.value.trim()
+    name:name.value.trim(),
+    game:game.value.trim(),
+    dateFrom:dateFrom.value,
+    dateTo:dateTo.value,
+    timeFrom:timeFrom.value.trim(),
+    timeTo:timeTo.value.trim(),
+    tzoffset:tzoffset.value.trim()
   };
 
   if (!d.name || !d.game || !d.dateFrom || !d.dateTo || !d.timeFrom || !d.timeTo || !d.tzoffset){
@@ -264,13 +300,12 @@ saveBtn.addEventListener("click", async () => {
 
   await addDoc(colRef, d);
 
-  document.getElementById("sessionForm").reset();
+  sessionForm.reset();
   tzoffset.value = formatOffset(autoOffset);
 
   loadSessions();
 });
 
 </script>
-
 </body>
 </html>
