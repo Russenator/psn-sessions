@@ -64,7 +64,9 @@ body {
   --text: #e6eef8;
 }
 .dark body { color: var(--text); }
-.dark h1, .dark h3, .dark strong, .dark .small { color: var(--text) !important; }
+.dark h1, .dark h3, .dark strong, .dark .session, .dark .small {
+  color: var(--text) !important;
+}
 .dark .session {
   background: #131b2c !important;
   border-color: #1f2940 !important;
@@ -72,6 +74,7 @@ body {
 .dark .input { background: #1a2336; color: var(--text); border-color: #2d3a55; }
 .dark .btn { background: #2f5cff; }
 .dark .card { background: var(--card); }
+
 </style>
 </head>
 <body>
@@ -119,6 +122,7 @@ body {
   </div>
 </div>
 
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -131,16 +135,17 @@ const firebaseConfig = {
   messagingSenderId: "1089591052960",
   appId: "1:1089591052960:web:069c515084f2105b22d7c5"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db, "sessions");
 
+/* SPRACHE & OFFSET */
 const browserLang = navigator.language || "de";
 const autoOffset = -new Date().getTimezoneOffset() / 60;
 function formatOffset(v){ const n = Number(v); return (n>=0?"+":"") + n; }
 document.getElementById("tzoffset").value = formatOffset(autoOffset);
 
+/* FLATPICKR */
 await import("https://cdn.jsdelivr.net/npm/flatpickr");
 
 function getLocale(){
@@ -150,25 +155,34 @@ function getLocale(){
 
 function initCalendar() {
   const locale = getLocale();
-  flatpickr(dateFrom, { altInput:true, altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y", dateFormat:"Y-m-d", allowInput:true });
-  flatpickr(dateTo,   { altInput:true, altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y", dateFormat:"Y-m-d", allowInput:true });
+  flatpickr(dateFrom, {
+    altInput: true,
+    altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
+    dateFormat: "Y-m-d",
+    allowInput: true
+  });
+  flatpickr(dateTo, {
+    altInput: true,
+    altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
+    dateFormat: "Y-m-d",
+    allowInput: true
+  });
 }
 initCalendar();
 langSelect.addEventListener("change", initCalendar);
 
-themeBtn.addEventListener("click", ()=>{
+/* DARKMODE */
+themeBtn.addEventListener("click",()=>{
   document.documentElement.classList.toggle("dark");
   themeBtn.textContent = document.documentElement.classList.contains("dark") ? "Light" : "Dark";
 });
 
+/* ZEIT-UMRECHNUNG */
 function convertToLocalTime(t, tz){
   if (!t || t.trim()==="") return "";
-
-  // TZ prüfen
   let offset = parseFloat(tz);
   if (isNaN(offset)) offset = autoOffset;
 
-  // Zeit normalisieren
   t = t.trim().toLowerCase().replace(/\s+/g,"");
   let h=0, m=0;
   const isPM = t.includes("pm");
@@ -196,43 +210,60 @@ function convertToLocalTime(t, tz){
   return d.toLocaleTimeString(getLocale(),{hour:"2-digit",minute:"2-digit"});
 }
 
+/* LADEN DER SESSIONS */
 async function loadSessions(){
   const list = document.getElementById("sessions");
   const b2 = document.getElementById("b2list");
-  list.innerHTML = ""; b2.innerHTML="";
+  list.innerHTML = "";
+  b2.innerHTML = "";
 
   const snap = await getDocs(colRef);
-  if(snap.empty){ list.innerHTML="<div class='small'>Keine Sessions</div>"; return; }
+  if (snap.empty){
+    list.innerHTML = "<div class='small'>Keine Sessions</div>";
+    return;
+  }
 
-  const groups={};
+  const groups = {};
   snap.forEach(d=>{
-    const data=d.data();
-    if(!groups[data.game]) groups[data.game]=[];
-    groups[data.game].push({id:d.id,data});
+    const data = d.data();
+    if (!groups[data.game]) groups[data.game] = [];
+    groups[data.game].push({ id:d.id, data });
   });
 
   Object.keys(groups).sort().forEach(game=>{
     const header = document.createElement("div");
-    header.className="session";
-    header.innerHTML=`<strong>${game}</strong>`;
+    header.className = "session";
+    header.innerHTML = `<strong>${game}</strong>`;
     list.appendChild(header);
 
     groups[game].forEach(entry=>{
       const d = entry.data;
-      const date1 = d.dateFrom ? new Date(d.dateFrom).toLocaleDateString(getLocale(),{weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}):"";
-      const date2 = d.dateTo   ? new Date(d.dateTo).toLocaleDateString(getLocale(),{weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}):"";
-      const t1 = convertToLocalTime(d.timeFrom,d.tzoffset);
-      const t2 = convertToLocalTime(d.timeTo,d.tzoffset);
+
+      const date1 = d.dateFrom ? new Date(d.dateFrom).toLocaleDateString(getLocale(),{
+        weekday:"short", year:"numeric", month:"2-digit", day:"2-digit"
+      }) : "";
+
+      const date2 = d.dateTo ? new Date(d.dateTo).toLocaleDateString(getLocale(),{
+        weekday:"short", year:"numeric", month:"2-digit", day:"2-digit"
+      }) : "";
+
+      const t1 = convertToLocalTime(d.timeFrom, d.tzoffset);
+      const t2 = convertToLocalTime(d.timeTo, d.tzoffset);
 
       const row = document.createElement("div");
-      row.className="session"; row.style.marginLeft="18px";
-      row.innerHTML=`
+      row.className = "session";
+      row.style.marginLeft = "18px";
+      row.innerHTML = `
         <div>
           <strong>${d.name}</strong><br>
-          <span class="small">${date1} → ${date2}<br>${t1} – ${t2} (UTC${formatOffset(d.tzoffset)})</span>
+          <span class="small">
+            ${date1} → ${date2}<br>
+            ${t1} – ${t2} (UTC${formatOffset(d.tzoffset)})
+          </span>
         </div>
         <button class="delete">X</button>
       `;
+
       row.querySelector(".delete").onclick = async()=>{
         await deleteDoc(doc(db,"sessions",entry.id));
         loadSessions();
@@ -240,7 +271,7 @@ async function loadSessions(){
 
       list.appendChild(row);
 
-      if(game.toLowerCase()==="b2" || game.toLowerCase()==="kategorie b2"){
+      if (game.toLowerCase() === "b2" || game.toLowerCase() === "kategorie b2"){
         const b2row = row.cloneNode(true);
         b2.appendChild(b2row);
       }
@@ -249,8 +280,9 @@ async function loadSessions(){
 }
 loadSessions();
 
-saveBtn.addEventListener("click",async()=>{
-  const d={
+/* SPEICHERN */
+saveBtn.addEventListener("click", async()=>{
+  const d = {
     name: name.value.trim(),
     game: game.value.trim(),
     dateFrom: dateFrom.value,
@@ -259,10 +291,14 @@ saveBtn.addEventListener("click",async()=>{
     timeTo: timeTo.value.trim(),
     tzoffset: tzoffset.value.trim()
   };
-  if(!d.name||!d.game||!d.dateFrom||!d.dateTo||!d.timeFrom||!d.timeTo||!d.tzoffset){return alert("Bitte alles ausfüllen!");}
-  await addDoc(colRef,d);
+
+  if (!d.name || !d.game || !d.dateFrom || !d.dateTo || !d.timeFrom || !d.timeTo || !d.tzoffset){
+    return alert("Bitte alles ausfüllen!");
+  }
+
+  await addDoc(colRef, d);
   sessionForm.reset();
-  tzoffset.value=formatOffset(autoOffset);
+  tzoffset.value = formatOffset(autoOffset);
   loadSessions();
 });
 </script>
