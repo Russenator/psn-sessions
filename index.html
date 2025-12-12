@@ -163,8 +163,14 @@ themeBtn.addEventListener("click", ()=>{
 
 function convertToLocalTime(t, tz){
   if (!t || t.trim()==="") return "";
+
+  // TZ prüfen
+  let offset = parseFloat(tz);
+  if (isNaN(offset)) offset = autoOffset;
+
+  // Zeit normalisieren
   t = t.trim().toLowerCase().replace(/\s+/g,"");
-  let h=0,m=0;
+  let h=0, m=0;
   const isPM = t.includes("pm");
   const isAM = t.includes("am");
   t = t.replace(/am|pm/,"");
@@ -184,8 +190,9 @@ function convertToLocalTime(t, tz){
   if(isPM && h<12) h+=12;
   if(isAM && h===12) h=0;
 
-  const d=new Date();
-  d.setHours(h - parseFloat(tz) + autoOffset, m, 0,0);
+  const d = new Date();
+  d.setHours(h - offset + autoOffset, m, 0, 0);
+
   return d.toLocaleTimeString(getLocale(),{hour:"2-digit",minute:"2-digit"});
 }
 
