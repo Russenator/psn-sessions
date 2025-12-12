@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sitzungsplaner — stabile Version</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -10,80 +10,81 @@
 
 <style>
 :root {
-  --bg:#f4f8ff;
-  --card:#fff;
-  --text:#0f172a;
-  --accent:#4a8bff;
-  --muted:#6b7280;
+  --bg: #f4f8ff;
+  --card: #fff;
+  --accent: #4a8bff;
+  --muted: #6b7280;
+  --text: #0f172a;
 }
-
-/* Allgemeines Layout */
-body{
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
+body {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
 }
-.container{max-width:900px;margin:28px auto;padding:20px}
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.title{display:flex;gap:12px;align-items:center}
-.title h1{font-size:20px;margin:0}
-.controls{display:flex;gap:8px;align-items:center}
-.card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(16,24,40,.06)}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.input{width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefc}
-.btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
-.sessions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
-.session{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid #eef4ff;background:linear-gradient(180deg,#fff,#fbfdff)}
-.small{font-size:13px;color:var(--muted)}
-.delete{background:#ff4d4f;border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
-.toggle{background:#111;color:#fff;padding:8px;border-radius:8px;border:none}
+.container { max-width: 900px; margin: 28px auto; padding: 20px; }
+.header { display: flex; justify-content: space-between; align-items: center; }
+.title { display: flex; gap: 12px; align-items: center; }
+.title h1 { margin: 0; font-size: 20px; }
+.card {
+  background: var(--card);
+  padding: 18px;
+  border-radius: 14px;
+  margin-top: 16px;
+  box-shadow: 0 8px 30px rgba(16, 24, 40, .06);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.input { padding: 10px; border-radius: 10px; border: 1px solid #e6eefc; }
+.btn {
+  background: var(--accent); color: #fff;
+  padding: 10px 14px; border-radius: 10px; border: none; cursor: pointer;
+}
+.sessions { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.session {
+  background: #fff;
+  border: 1px solid #eef4ff;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.small { font-size: 13px; color: var(--muted); }
+.delete { background: #ff4d4f; border: none; color: white; padding: 8px; border-radius: 8px; cursor: pointer; }
+.toggle { background: #111; color: #fff; padding: 8px; border-radius: 8px; border: none; }
 
-/* Darkmode */
+/* DARK MODE FIXED */
 .dark {
-  --bg:#0b1220;
-  --card:#0f1724;
-  --text:#e6eef8;
+  --bg: #0b1220;
+  --card: #0f1724;
+  --text: #e6eef8;
 }
-
-.dark body,
-.dark h1,
-.dark h3,
-.dark strong,
-.dark span,
+.dark body { color: var(--text); }
+.dark h1, .dark h3, .dark strong, .dark .session, .dark .small {
+  color: var(--text) !important;
+}
 .dark .session {
-  color:var(--text) !important;
+  background: #131b2c !important;
+  border-color: #1f2940 !important;
 }
-
-.dark .session {
-  background:#131b2c !important;
-  border-color:#1f2940 !important;
-}
-
-.dark .input{
-  background:#192235;
-  color:#e6eef8;
-  border-color:#2a3550;
-}
-
-.dark .btn{ background:#4a8bff }
+.dark .input { background: #1a2336; color: var(--text); border-color: #2d3a55; }
+.dark .btn { background: #2f5cff; }
+.dark .card { background: var(--card); }
 
 </style>
 </head>
-
 <body>
-<div class="container">
 
-  <!-- HEADER -->
+<div class="container">
   <div class="header">
     <div class="title">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <path d="M7 11h5v5H7z" fill="#4a8bff"/>
-        <path d="M3 5h18v16H3z" stroke="#4a8bff" stroke-width="1.2" fill="none"/>
-      </svg>
+      <svg width="28" height="28" viewBox="0 0 24 24"><path d="M7 11h5v5H7z" fill="#4a8bff"/><path d="M3 5h18v16H3z" stroke="#4a8bff" stroke-width="1.2" fill="none"/></svg>
       <h1>Sitzungsplaner — stabile Version</h1>
     </div>
-
     <div class="controls">
       <button id="themeBtn" class="toggle">Dark</button>
       <select id="langSelect" class="input" style="width:auto">
@@ -94,43 +95,40 @@ body{
     </div>
   </div>
 
-  <!-- FORMULAR -->
-  <div class="card" style="margin-top:16px">
+  <!-- FORM -->
+  <div class="card">
     <form id="sessionForm" class="form-grid">
-      <input id="name" class="input" placeholder="Name (PSN)" autocomplete="off">
-      <input id="game" class="input" placeholder="Game" autocomplete="off">
-      <input id="dateFrom" class="input" placeholder="Start date">
-      <input id="dateTo" class="input" placeholder="End date">
-      <input id="timeFrom" class="input" placeholder="Start time">
-      <input id="timeTo" class="input" placeholder="End time">
-      <input id="tzoffset" class="input" placeholder="UTC offset (z.B. +1)" required>
-      <div style="display:flex;align-items:center;">
-        <button id="saveBtn" class="btn" type="button">Save session</button>
-      </div>
+      <input id="name" class="input" placeholder="Name (PSN)">
+      <input id="game" class="input" placeholder="Game / Kategorie">
+      <input id="dateFrom" class="input" placeholder="Start-Datum">
+      <input id="dateTo" class="input" placeholder="End-Datum">
+      <input id="timeFrom" class="input" placeholder="Startzeit (18:30 oder 6:30 PM)">
+      <input id="timeTo" class="input" placeholder="Endzeit">
+      <input id="tzoffset" class="input" placeholder="UTC Offset z.B. +1">
+      <button id="saveBtn" type="button" class="btn">Save session</button>
     </form>
   </div>
 
   <!-- SESSION LIST -->
-  <div class="card" style="margin-top:16px">
-    <h3 style="margin:0">Sessions</h3>
-    <div id="sessions" class="sessions" aria-live="polite"></div>
+  <div class="card">
+    <h3>Sessions</h3>
+    <div id="sessions" class="sessions"></div>
   </div>
 
-  <!-- Kategorie B2 -->
-  <div class="card" style="margin-top:16px">
-    <h3 style="margin:0">Kategorie B2</h3>
-    <div id="b2list" class="sessions" aria-live="polite"></div>
+  <!-- KATEGORIE B2 -->
+  <div class="card">
+    <h3>Kategorie B2</h3>
+    <div id="b2list" class="sessions"></div>
   </div>
-
 </div>
 
-<!-- JavaScript -->
-<script type="module">
 
-/* --- Firebase --- */
+<script type="module">
+/* ============================
+   FIREBASE INITIALISIERUNG
+============================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
@@ -145,61 +143,61 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db, "sessions");
 
-/* --- Sprache & Zeitzone --- */
+/* ============================
+   SPRACHE & OFFSET
+============================= */
 const browserLang = navigator.language || "de";
-const autoOffset = -new Date().getTimezoneOffset()/60;
+const autoOffset = -new Date().getTimezoneOffset() / 60;
+function formatOffset(v){ const n = Number(v); return (n>=0?"+":"") + n; }
+document.getElementById("tzoffset").value = formatOffset(autoOffset);
 
-function formatOffset(v){
-  const num = Number(v);
-  if (isNaN(num)) return "";
-  return (num >= 0 ? "+" : "") + num;
-}
-
-tzoffset.value = formatOffset(autoOffset);
-
-/* --- Flatpickr --- */
+/* ============================
+   FLATPICKR
+============================= */
 await import("https://cdn.jsdelivr.net/npm/flatpickr");
 
 function getLocale(){
-  const sel = langSelect.value;
+  const sel = document.getElementById("langSelect").value;
   return sel === "auto" ? browserLang : sel;
 }
 
 function initCalendar(){
   const locale = getLocale();
 
-  flatpickr(dateFrom, {
+  flatpickr(dateFrom,{
     altInput:true,
     altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
     dateFormat:"Y-m-d",
     allowInput:true,
-    onClose:(d,str)=> dateFrom.value=str
+    onChange:(_,dateStr)=> dateFrom.value=dateStr,
+    onClose:(_,dateStr)=> dateFrom.value=dateStr
   });
 
-  flatpickr(dateTo, {
+  flatpickr(dateTo,{
     altInput:true,
     altFormat: locale.startsWith("de") ? "d.m.Y" : "F j, Y",
     dateFormat:"Y-m-d",
     allowInput:true,
-    onClose:(d,str)=> dateTo.value=str
+    onChange:(_,dateStr)=> dateTo.value=dateStr,
+    onClose:(_,dateStr)=> dateTo.value=dateStr
   });
 }
-
 initCalendar();
 langSelect.addEventListener("change", initCalendar);
 
-/* --- Darkmode --- */
+/* ============================
+   DARKMODE
+============================= */
 themeBtn.addEventListener("click",()=>{
   document.documentElement.classList.toggle("dark");
-  themeBtn.textContent =
-    document.documentElement.classList.contains("dark") ? "Light" : "Dark";
+  themeBtn.textContent = document.documentElement.classList.contains("dark") ? "Light" : "Dark";
 });
 
-/* --- Zeit-Umrechnung --- */
+/* ============================
+   ZEIT-UMRECHNUNG FIX
+============================= */
 function convertToLocalTime(t, tz){
-  if (!t) return "";
-
-  const offset = parseFloat(tz);
+  if (!t || t.trim()==="") return "";
   const parts = t.trim().split(/[: ]+/);
 
   let h = Number(parts[0]);
@@ -210,102 +208,108 @@ function convertToLocalTime(t, tz){
   if (period === "am" && h === 12) h = 0;
 
   const d = new Date();
-  d.setHours(h - offset + autoOffset, m, 0, 0);
+  d.setHours(h - parseFloat(tz) + autoOffset, m, 0, 0);
 
   return d.toLocaleTimeString(getLocale(), { hour:"2-digit", minute:"2-digit" });
 }
 
-/* --- Sessions laden --- */
+/* ============================
+   LADEN DER SESSIONS
+============================= */
 async function loadSessions(){
-  const sessionsEl = document.getElementById("sessions");
-  sessionsEl.innerHTML = "";
+  const list = document.getElementById("sessions");
+  const b2 = document.getElementById("b2list");
+  list.innerHTML = "";
+  b2.innerHTML = "";
 
   const snap = await getDocs(colRef);
   if (snap.empty){
-    sessionsEl.innerHTML = "<div class='small'>No sessions</div>";
+    list.innerHTML = "<div class='small'>Keine Sessions</div>";
     return;
   }
 
   const groups = {};
 
-  snap.forEach(docu=>{
-    const d = docu.data();
-    if (!groups[d.game]) groups[d.game] = [];
-    groups[d.game].push({ id:docu.id, data:d });
+  snap.forEach(d=>{
+    const data = d.data();
+    if (!groups[data.game]) groups[data.game] = [];
+    groups[data.game].push({ id:d.id, data });
   });
 
   Object.keys(groups).sort().forEach(game=>{
-    const gameBox = document.createElement("div");
-    gameBox.className = "session";
-    gameBox.innerHTML = `<strong>${game}</strong>`;
-    sessionsEl.appendChild(gameBox);
+    const header = document.createElement("div");
+    header.className = "session";
+    header.innerHTML = `<strong>${game}</strong>`;
+    list.appendChild(header);
 
     groups[game].forEach(entry=>{
       const d = entry.data;
 
-      const fromDate = d.dateFrom
-        ? new Date(d.dateFrom).toLocaleDateString(getLocale(), { weekday:"short", year:"numeric", month:"2-digit", day:"2-digit" })
-        : "";
+      const date1 = d.dateFrom ? new Date(d.dateFrom).toLocaleDateString(getLocale(),{
+        weekday:"short", year:"numeric", month:"2-digit", day:"2-digit"
+      }) : "";
 
-      const toDate = d.dateTo
-        ? new Date(d.dateTo).toLocaleDateString(getLocale(), { weekday:"short", year:"numeric", month:"2-digit", day:"2-digit" })
-        : "";
+      const date2 = d.dateTo ? new Date(d.dateTo).toLocaleDateString(getLocale(),{
+        weekday:"short", year:"numeric", month:"2-digit", day:"2-digit"
+      }) : "";
 
-      const fromTime = convertToLocalTime(d.timeFrom, d.tzoffset);
-      const toTime = convertToLocalTime(d.timeTo, d.tzoffset);
+      const t1 = convertToLocalTime(d.timeFrom, d.tzoffset);
+      const t2 = convertToLocalTime(d.timeTo, d.tzoffset);
 
-      const box = document.createElement("div");
-      box.className = "session";
-      box.style.marginLeft = "18px";
-
-      box.innerHTML = `
+      const row = document.createElement("div");
+      row.className = "session";
+      row.style.marginLeft = "18px";
+      row.innerHTML = `
         <div>
           <strong>${d.name}</strong><br>
           <span class="small">
-            ${fromDate} → ${toDate}<br>
-            ${fromTime} – ${toTime} (UTC${formatOffset(d.tzoffset)})
+            ${date1} → ${date2}<br>
+            ${t1} – ${t2} (UTC${formatOffset(d.tzoffset)})
           </span>
         </div>
         <button class="delete">X</button>
       `;
 
-      box.querySelector(".delete").onclick = async ()=>{
+      row.querySelector(".delete").onclick = async()=>{
         await deleteDoc(doc(db,"sessions",entry.id));
         loadSessions();
       };
 
-      sessionsEl.appendChild(box);
+      list.appendChild(row);
+
+      if (game.toLowerCase() === "b2" || game.toLowerCase() === "kategorie b2"){
+        const b2row = row.cloneNode(true);
+        b2.appendChild(b2row);
+      }
     });
   });
 }
-
 loadSessions();
 
-/* --- Speichern --- */
+/* ============================
+   STORAGE — SPEICHERN
+============================= */
 saveBtn.addEventListener("click", async()=>{
-
   const d = {
-    name:name.value.trim(),
-    game:game.value.trim(),
-    dateFrom:dateFrom.value,
-    dateTo:dateTo.value,
-    timeFrom:timeFrom.value.trim(),
-    timeTo:timeTo.value.trim(),
-    tzoffset:tzoffset.value.trim()
+    name: name.value.trim(),
+    game: game.value.trim(),
+    dateFrom: dateFrom.value,
+    dateTo: dateTo.value,
+    timeFrom: timeFrom.value.trim(),
+    timeTo: timeTo.value.trim(),
+    tzoffset: tzoffset.value.trim()
   };
 
   if (!d.name || !d.game || !d.dateFrom || !d.dateTo || !d.timeFrom || !d.timeTo || !d.tzoffset){
-    return alert("Bitte alles ausfüllen");
+    return alert("Bitte alles ausfüllen!");
   }
 
   await addDoc(colRef, d);
-
   sessionForm.reset();
   tzoffset.value = formatOffset(autoOffset);
-
   loadSessions();
 });
-
 </script>
+
 </body>
 </html>
