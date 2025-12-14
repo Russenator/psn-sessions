@@ -159,8 +159,15 @@
   if (period === "am" && h === 12) h = 0;
 
   // Sicherstellen, dass tz (Timezone Offset) gültig ist
-  let offset = parseFloat(tz);
-  if (isNaN(offset)) offset = 0; // Standardwert auf UTC setzen
+  let offset = 0;
+
+  // Wenn tz als UTC+X oder UTC-X vorliegt, dann extrahieren wir den Zeitversatz
+  if (tz) {
+    const match = tz.match(/([+-]?\d+(\.\d+)?)/);
+    if (match) {
+      offset = parseFloat(match[1]);
+    }
+  }
 
   // UTC-Zeit der Session
   const utcDate = new Date();
