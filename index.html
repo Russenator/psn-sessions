@@ -149,25 +149,26 @@
     });
     /* Zeitumrechnung */
     function convertToLocalTime(timeStr, tz) {
-      if (!timeStr) return "";
-      let parts = timeStr.trim().split(/[: ]+/);
-      let h = Number(parts[0]) || 0;
-      let m = Number(parts[1]) || 0;
-      let period = parts[2] ? parts[2].toLowerCase() : null;
-      if (period === "pm" && h < 12) h += 12;
-      if (period === "am" && h === 12) h = 0;
+  if (!timeStr) return "";
 
-      // Prüfen, ob tz (Timezone Offset) gültig ist, falls nicht auf 0 setzen
-      let offset = parseFloat(tz);
-      if (isNaN(offset)) offset = 0; // Standardwert auf UTC setzen
+  let parts = timeStr.trim().split(/[: ]+/);
+  let h = Number(parts[0]) || 0;
+  let m = Number(parts[1]) || 0;
+  let period = parts[2] ? parts[2].toLowerCase() : null;
+  if (period === "pm" && h < 12) h += 12;
+  if (period === "am" && h === 12) h = 0;
 
-      // UTC-Zeit der Session
-      const utcDate = new Date();
-      utcDate.setUTCHours(h - offset, m, 0, 0);
+  // Sicherstellen, dass tz (Timezone Offset) gültig ist
+  let offset = parseFloat(tz);
+  if (isNaN(offset)) offset = 0; // Standardwert auf UTC setzen
 
-      // Lokale Zeit des Browsers
-      return utcDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
+  // UTC-Zeit der Session
+  const utcDate = new Date();
+  utcDate.setUTCHours(h - offset, m, 0, 0);
+
+  // Lokale Zeit des Browsers
+  return utcDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
     /* Sessions laden */
     async function loadSessions(){
       const list = document.getElementById("sessions");
