@@ -105,11 +105,11 @@ themeBtn.addEventListener('click', ()=>{
   themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
 });
 
-function convertToLocalTime(t, tz, locale = 'de-DE') {
+function convertToLocalTime(t, tz, locale = 'en-US') {
   try {
     if (!t) return ''; // Keine Zeit übergeben
 
-    // Berechne den UTC-Offset (z.B. '2' für +2 Stunden)
+    // Berechne den UTC-Offset aus der gegebenen Zeitzone (z.B. "2" für UTC+2)
     const offset = parseFloat(tz);
 
     // Zeit aufteilen (z.B. "6:30 PM" -> [6, 30, "PM"])
@@ -117,26 +117,31 @@ function convertToLocalTime(t, tz, locale = 'de-DE') {
     h = Number(h);
     m = Number(m) || 0;
 
-    // AM/PM-Umrechnung
+    // AM/PM-Umrechnung, falls vorhanden
     if (period) {
       period = period.toLowerCase();
       if (period === "pm" && h < 12) h += 12;  // "6 PM" -> 18
       if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
     }
 
-    // Erstelle ein UTC-Datum, indem wir die Zeit für ein beliebiges Datum angeben (z.B. 1. Januar 2023)
+    // Wir nutzen den 1. Januar 2023 als Beispiel-Datum, weil uns nur die Zeit interessiert
     const utcDate = new Date(Date.UTC(2023, 0, 1, h, m));
 
-    // Jetzt wenden wir den UTC-Offset an, um zur lokalen Zeit zu kommen.
+    // Offset anwenden (um den Unterschied zu UTC zu berücksichtigen)
     utcDate.setHours(utcDate.getHours() + offset);
 
-    // Rückgabe der Zeit im gewünschten Format und unter Berücksichtigung der Zeitzone
-    return new Intl.DateTimeFormat(locale, {
+    // Wählen der richtigen Formatierung basierend auf der Sprache
+    const options = {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false,  // 24-Stunden-Format
-    }).format(utcDate);
+      hour12: locale === 'en-US' || locale === 'en-GB',  // AM/PM für Englisch
+    };
 
+    // Erstelle das Datum im lokalen Format
+    const formatter = new Intl.DateTimeFormat(locale, options);
+
+    // Zeit im lokalen Format zurückgeben
+    return formatter.format(utcDate);
   } catch (e) {
     console.error('Fehler beim Parsen der Zeit:', t, e);
     return t;  // Im Fehlerfall die Eingabewerte zurückgeben
