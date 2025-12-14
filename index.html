@@ -105,14 +105,14 @@ themeBtn.addEventListener('click', ()=>{
   themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
 });
 
-function convertToLocalTime(t, tz, locale = 'en-US') {
+function convertToLocalTime(t, tz, locale = 'de-DE') {
   try {
     if (!t) return ''; // Keine Zeit übergeben
 
-    // Berechne den UTC-Offset aus der gegebenen Zeitzone (z.B. "2" für UTC+2)
+    // Berechne den UTC-Offset (z.B. '1' für UTC+1)
     const offset = parseFloat(tz);
 
-    // Zeit aufteilen (z.B. "6:30 PM" -> [6, 30, "PM"])
+    // Zeit aufteilen (z.B. "7:47 PM" -> [7, 47, "PM"])
     let [h, m, period] = t.split(/[: ]/);
     h = Number(h);
     m = Number(m) || 0;
@@ -120,27 +120,27 @@ function convertToLocalTime(t, tz, locale = 'en-US') {
     // AM/PM-Umrechnung, falls vorhanden
     if (period) {
       period = period.toLowerCase();
-      if (period === "pm" && h < 12) h += 12;  // "6 PM" -> 18
+      if (period === "pm" && h < 12) h += 12;  // "7 PM" -> 19
       if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
     }
 
-    // Wir nutzen den 1. Januar 2023 als Beispiel-Datum, weil uns nur die Zeit interessiert
-    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m));
+    // Erstelle das Datum in UTC mit der angegebenen Zeit
+    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m)); // Irgendwann im Jahr 2023, aber nur die Zeit ist wichtig
 
-    // Offset anwenden (um den Unterschied zu UTC zu berücksichtigen)
+    // Wende den Offset an (um den Unterschied zur lokalen Zeit zu berücksichtigen)
     utcDate.setHours(utcDate.getHours() + offset);
 
-    // Wählen der richtigen Formatierung basierend auf der Sprache
+    // Wähle das passende Format basierend auf der Sprache
     const options = {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: locale === 'en-US' || locale === 'en-GB',  // AM/PM für Englisch
+      hour12: locale === 'en-US' || locale === 'en-GB', // AM/PM für Englisch
     };
 
-    // Erstelle das Datum im lokalen Format
+    // Erstelle die lokale Zeit im richtigen Format
     const formatter = new Intl.DateTimeFormat(locale, options);
 
-    // Zeit im lokalen Format zurückgeben
+    // Rückgabe der lokalisierten Zeit
     return formatter.format(utcDate);
   } catch (e) {
     console.error('Fehler beim Parsen der Zeit:', t, e);
