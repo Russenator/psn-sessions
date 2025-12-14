@@ -111,42 +111,37 @@ function convertToLocalTime(t, tz, locale = 'de-DE') {
 
     // Berechne den UTC-Offset (z.B. '2' für +2 Stunden)
     const offset = parseFloat(tz);
-    
-    // AM/PM-Format umwandeln in 24-Stunden-Format
-    let [h, m, period] = t.split(/[: ]/); // z.B. "6:30 PM"
+
+    // Zeit aufteilen (z.B. "6:30 PM" -> [6, 30, "PM"])
+    let [h, m, period] = t.split(/[: ]/);
     h = Number(h);
     m = Number(m) || 0;
-    
-    // Überprüfen, ob AM/PM angegeben ist
+
+    // AM/PM-Umrechnung
     if (period) {
       period = period.toLowerCase();
-      // "AM" oder "PM" Umrechnung
       if (period === "pm" && h < 12) h += 12;  // "6 PM" -> 18
       if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
     }
 
-    // Erstellt ein Date-Objekt basierend auf UTC Zeit
-    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m)); // Beispiel-Datum (wir brauchen nur Zeit, Datum ist nicht wichtig
-    
-    // Wende den Offset an (der Offset wird zu den Stunden addiert, um zur lokalen Zeit zu kommen)
+    // Erstelle ein UTC-Datum, indem wir die Zeit für ein beliebiges Datum angeben (z.B. 1. Januar 2023)
+    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m));
+
+    // Jetzt wenden wir den UTC-Offset an, um zur lokalen Zeit zu kommen.
     utcDate.setHours(utcDate.getHours() + offset);
 
-    // Benutze `Intl.DateTimeFormat` für die lokale Zeitformatierung
-    const formatter = new Intl.DateTimeFormat(locale, {
+    // Rückgabe der Zeit im gewünschten Format und unter Berücksichtigung der Zeitzone
+    return new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false,  // Verwenden des 24-Stunden-Formats
-    });
+      hour12: false,  // 24-Stunden-Format
+    }).format(utcDate);
 
-    // Rückgabe der formatierten lokalen Zeit
-    return formatter.format(utcDate);
-    
   } catch (e) {
     console.error('Fehler beim Parsen der Zeit:', t, e);
     return t;  // Im Fehlerfall die Eingabewerte zurückgeben
   }
 }
-
   
 async function renderSessions(){
   sessionsEl.innerHTML = '';
