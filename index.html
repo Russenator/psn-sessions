@@ -107,18 +107,24 @@ themeBtn.addEventListener('click', ()=>{
 
 function convertToLocalTime(t, tz){
   try{
-    if(!t) return '';
-    const offset = parseFloat(tz);
-    let [h,m,period] = t.split(/[: ]/);
-    h = Number(h); m = Number(m)||0;
-    if(period && period.toLowerCase()==='pm' && h<12) h+=12;
-    if(period && period.toLowerCase()==='am' && h===12) h=0;
-    const remote = new Date();
-    remote.setHours(h - offset + autoOffset, m, 0, 0);
-    return remote.toLocaleTimeString(getLocale(), {hour:'2-digit', minute:'2-digit'});
-  }catch{ return t; }
-}
+    if(!t) return ''; // Keine Zeit übergeben
+    const offset = parseFloat(tz); // UTC-Offset der Eingabe
+    let [h,m,period] = t.split(/[: ]/); // Aufteilen der Eingabezeit (hh:mm AM/PM)
+    h = Number(h); m = Number(m) || 0; // Stunden und Minuten
 
+    // AM/PM-Umrechnung
+    if(period && period.toLowerCase() === 'pm' && h < 12) h += 12; // Nachmittagszeit: 12 Stunden hinzuzufügen
+    if(period && period.toLowerCase() === 'am' && h === 12) h = 0; // Mitternacht: Stunden auf 0 setzen
+
+    const remote = new Date();
+    remote.setHours(h - offset + autoOffset, m, 0, 0); // Zeit mit UTC-Offset berechnen
+    return remote.toLocaleTimeString(getLocale(), {hour:'2-digit', minute:'2-digit'}); // Lokale Zeit im 24-Stunden-Format zurückgeben
+  }catch(e){ 
+    console.error('Error parsing time:', t, e); 
+    return t; // Im Fehlerfall die originale Zeit zurückgeben
+  }
+}
+  
 async function renderSessions(){
   sessionsEl.innerHTML = '';
   try{
