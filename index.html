@@ -125,14 +125,22 @@ function convertToLocalTime(t, tz, locale = 'de-DE') {
       if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
     }
 
-    // Berechne das UTC Datum (mit Stunden und Minuten)
-    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m)); // Irgendwann in der Vergangenheit, für eine korrekte UTC-Zeit
+    // Erstellt ein Date-Objekt basierend auf UTC Zeit
+    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m)); // Beispiel-Datum (wir brauchen nur Zeit, Datum ist nicht wichtig
     
-    // Jetzt wende den Offset an (Offset wird zu den Stunden addiert, um zur lokalen Zeit zu kommen)
+    // Wende den Offset an (der Offset wird zu den Stunden addiert, um zur lokalen Zeit zu kommen)
     utcDate.setHours(utcDate.getHours() + offset);
 
-    // Rückgabe der lokalen Zeit
-    return utcDate.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }); 
+    // Benutze `Intl.DateTimeFormat` für die lokale Zeitformatierung
+    const formatter = new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,  // Verwenden des 24-Stunden-Formats
+    });
+
+    // Rückgabe der formatierten lokalen Zeit
+    return formatter.format(utcDate);
+    
   } catch (e) {
     console.error('Fehler beim Parsen der Zeit:', t, e);
     return t;  // Im Fehlerfall die Eingabewerte zurückgeben
