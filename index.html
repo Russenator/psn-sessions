@@ -161,11 +161,14 @@
   // Sicherstellen, dass tz (Timezone Offset) gültig ist
   let offset = 0;
 
-  // Wenn tz als UTC+X oder UTC-X vorliegt, dann extrahieren wir den Zeitversatz
+  // Wenn tz im Format "UTC±X" vorliegt, extrahieren wir den Zeitversatz
   if (tz) {
-    const match = tz.match(/([+-]?\d+(\.\d+)?)/);
+    const match = tz.match(/UTC([+-]?\d+(\.\d+)?)/);
     if (match) {
       offset = parseFloat(match[1]);
+    } else {
+      console.error("Ungültiges Format für tz:", tz);
+      return "Fehler: Ungültiges Zeitformat";
     }
   }
 
