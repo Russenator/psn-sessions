@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
-:root{--bg:#f4f8ff;--card:#fff;--accent:#4a8bff;--muted:#6b7280}
-body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#0f172a}
+:root{--bg:#f4f8ff;--card:#fff;--accent:#4a8bff;--muted:#6b7280;--text:#0f172a}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:var(--text)}
 .container{max-width:900px;margin:28px auto;padding:20px}
 .header{display:flex;justify-content:space-between;align-items:center}
 .card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.06);margin-top:16px}
@@ -19,7 +19,7 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;ba
 .session{border:1px solid #eef4ff;border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center}
 .small{font-size:13px;color:var(--muted)}
 .delete{background:#ff4d4f;color:#fff;border:none;border-radius:8px;padding:6px 10px;cursor:pointer}
-.dark{--bg:#0b1220;--card:#0f1724;color:#e6eef8}
+.dark{--bg:#0b1220;--card:#0f1724;--text:#e6eef8}
 </style>
 </head>
 <body>
@@ -35,7 +35,7 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;ba
       <input id="game" class="input" placeholder="Game / Kategorie">
       <input id="dateFrom" class="input" placeholder="Start-Datum">
       <input id="dateTo" class="input" placeholder="End-Datum">
-      <input id="timeFrom" class="input" placeholder="Startzeit (z. B. 18:30 oder 6:30 PM)">
+      <input id="timeFrom" class="input" placeholder="Startzeit (z. B. 18:30 oder 6:30 PM)">
       <input id="timeTo" class="input" placeholder="Endzeit">
       <input id="tzoffset" class="input" placeholder="UTC Offset (+1)">
       <button id="saveBtn" class="btn">Save session</button>
@@ -65,38 +65,58 @@ const colRef = collection(db,'sessions');
 const autoOffset = -new Date().getTimezoneOffset()/60;
 document.getElementById('tzoffset').value = autoOffset >= 0 ? '+'+autoOffset : autoOffset;
 
+function safe(v, fallback='–'){return (v===undefined||v===null||v==='')?fallback:v;}
+
 function convertTime(time, tz){
-  if(!time) return '';
-  const [h,m]=time.split(':');
-  const d=new Date();
-  d.setUTCHours(Number(h)-tz,Number(m));
+  if(!time || isNaN(tz)) return '–';
+  let h,m;
+  const t=time.toLowerCase().trim();
+  if(t.includes('am')||t.includes('pm')){
+    const r=t.match(/(\d+):(\d+)\s*(am|pm)/);
+    if(!r) return '–';
+    h=Number(r[1])%12; if(r[3]==='pm') h+=12; m=Number(r[2]);
+  }else{
+    const p=t.split(':'); if(p.length!==2) return '–'; h=Number(p[0]); m=Number(p[1]);
+  }
+  const d=new Date(); d.setUTCHours(h-tz,m,0,0);
   return d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
 }
 
 async function loadSessions(){
-  const el=document.getElementById('sessions');
-  el.innerHTML='';
+  const list=document.getElementById('sessions');
+  const b2=document.getElementById('b2list');
+  list.innerHTML=''; b2.innerHTML='';
+
   const snap=await getDocs(colRef);
-  if(snap.empty){el.innerHTML='<div class="small">Keine Sessions</div>';return;}
+  if(snap.empty){list.innerHTML='<div class="small">Keine Sessions</div>';return;}
 
   const groups={};
-  snap.forEach(s=>{const d=s.data();(groups[d.game]=groups[d.game]||[]).push({id:s.id,...d});});
+  snap.forEach(s=>{
+    const d=s.data();
+    if(!d.game) return;
+    (groups[d.game]=groups[d.game]||[]).push({id:s.id,...d});
+  });
 
-  Object.keys(groups).forEach(game=>{
-    const h=document.createElement('div');h.innerHTML='<strong>'+game+'</strong>';el.appendChild(h);
+  Object.keys(groups).sort().forEach(game=>{
+    const h=document.createElement('div');
+    h.innerHTML='<strong>'+game+'</strong>';
+    list.appendChild(h);
+
     groups[game].forEach(d=>{
-      const box=document.createElement('div');box.className='session';
-      box.innerHTML=`<div><strong>${d.name}</strong><div class="small">${d.dateFrom} → ${d.dateTo}<br>${convertTime(d.timeFrom,d.tzoffset)} – ${convertTime(d.timeTo,d.tzoffset)} (UTC${d.tzoffset})</div></div><button class="delete">X</button>`;
+      const box=document.createElement('div'); box.className='session';
+      const tz=Number(d.tzoffset);
+      box.innerHTML=`<div><strong>${safe(d.name)}</strong><div class="small">${safe(d.dateFrom)} → ${safe(d.dateTo)}<br>${convertTime(d.timeFrom,tz)} – ${convertTime(d.timeTo,tz)} (UTC${isNaN(tz)?'?':(tz>=0?'+':'')+tz})</div></div><button class="delete">X</button>`;
       box.querySelector('.delete').onclick=async()=>{await deleteDoc(doc(db,'sessions',d.id));loadSessions();};
-      el.appendChild(box);
+      list.appendChild(box);
+      if(game.toLowerCase()==='b2'||game.toLowerCase()==='kategorie b2') b2.appendChild(box.cloneNode(true));
     });
   });
 }
 loadSessions();
 
 saveBtn.onclick=async()=>{
-  const d={name:name.value,game:game.value,dateFrom:dateFrom.value,dateTo:dateTo.value,timeFrom:timeFrom.value,timeTo:timeTo.value,tzoffset:Number(tzoffset.value)};
-  if(Object.values(d).some(v=>!v)) return alert('Alles ausfüllen');
+  const d={name:name.value.trim(),game:game.value.trim(),dateFrom:dateFrom.value,dateTo:dateTo.value,timeFrom:timeFrom.value.trim(),timeTo:timeTo.value.trim(),tzoffset:Number(tzoffset.value)};
+  if(Object.values(d).some(v=>v===undefined||v===null||v==='')) return alert('Alles ausfüllen');
   await addDoc(colRef,d);
   document.querySelectorAll('.input').forEach(i=>i.value='');
   tzoffset.value=autoOffset>=0?'+'+autoOffset:autoOffset;
