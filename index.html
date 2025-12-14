@@ -105,11 +105,11 @@ themeBtn.addEventListener('click', ()=>{
   themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
 });
 
-function convertToLocalTime(t, tz) {
+function convertToLocalTime(t, tz, locale = 'de-DE') {
   try {
     if (!t) return ''; // Keine Zeit übergeben
 
-    // Berechne den UTC-Offset
+    // Berechne den UTC-Offset (z.B. '2' für +2 Stunden)
     const offset = parseFloat(tz);
     
     // AM/PM-Format umwandeln in 24-Stunden-Format
@@ -127,14 +127,13 @@ function convertToLocalTime(t, tz) {
 
     // Erstellt ein Date-Objekt auf Basis der berechneten Stunden und Minuten
     const remote = new Date();
-    remote.setHours(h - offset + autoOffset, m, 0, 0);  // Die Zeit wird um den Offset korrigiert
-    return remote.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });  // Rückgabe der lokalen Zeit
+    remote.setHours(h - offset, m, 0, 0);  // Die Zeit wird um den Offset korrigiert
+
+    // Rückgabe der lokalen Zeit
+    return remote.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }); 
   } catch (e) {
     console.error('Fehler beim Parsen der Zeit:', t, e);
     return t;  // Im Fehlerfall die Eingabewerte zurückgeben
-  }
-}
-
   }
 }
   
