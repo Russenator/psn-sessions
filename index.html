@@ -1,6 +1,3 @@
-Klar! Hier ist der komplette Code mit der angepassten `convertToLocalTime`-Funktion, die sicherstellt, dass der `tzoffset` immer einen gültigen Wert hat und somit keine ungültige Zeit wie `UTCNaN` entsteht:
-
-```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -160,5 +157,82 @@ Klar! Hier ist der komplette Code mit der angepassten `convertToLocalTime`-Funkt
       if (period === "pm" && h < 12) h += 12;
       if (period === "am" && h === 12) h = 0;
 
-      // Prüfen, ob tz (Timezone Offset)
-```
+      // Prüfen, ob tz (Timezone Offset) gültig ist, falls nicht auf 0 setzen
+      let offset = parseFloat(tz);
+      if (isNaN(offset)) offset = 0; // Standardwert auf UTC setzen
+
+      // UTC-Zeit der Session
+      const utcDate = new Date();
+      utcDate.setUTCHours(h - offset, m, 0, 0);
+
+      // Lokale Zeit des Browsers
+      return utcDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+    /* Sessions laden */
+    async function loadSessions(){
+      const list = document.getElementById("sessions");
+      const b2 = document.getElementById("b2list");
+      list.innerHTML = "";
+      b2.innerHTML = "";
+      const snap = await getDocs(colRef);
+      if(snap.empty){ list.innerHTML="<div class='small'>Keine Sessions</div>"; return; }
+      const groups = {};
+      snap.forEach(d=>{
+        const data = d.data();
+        if(!groups[data.game]) groups[data.game]=[];
+        groups[data.game].push({id:d.id, data});
+      });
+      Object.keys(groups).sort().forEach(game=>{
+        const header = document.createElement("div");
+        header.className="session";
+        header.innerHTML=`<strong>${game}</strong>`;
+        list.appendChild(header);
+        groups[game].forEach(entry=>{
+          const d = entry.data;
+          const date1 = d.dateFrom?new Date(d.dateFrom).toLocaleDateString(getLocale(),{weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}):"";
+          const date2 = d.dateTo?new Date(d.dateTo).toLocaleDateString(getLocale(),{weekday:"short",year:"numeric",month:"2-digit",day:"2-digit"}):"";
+          const t1 = convertToLocalTime(d.timeFrom, d.tzoffset);
+          const t2 = convertToLocalTime(d.timeTo, d.tzoffset);
+          const row = document.createElement("div");
+          row.className="session";
+          row.style.marginLeft="18px";
+          row.innerHTML=`
+            <div>
+              <strong>${d.name}</strong><br>
+              <span class="small">
+                ${date1} → ${date2}<br>
+                ${t1} – ${t2} (UTC${formatOffset(d.tzoffset)})
+              </span>
+            </div>
+            <button class="delete">X</button>
+          `;
+          row.querySelector(".delete").onclick = async()=>{ await deleteDoc(doc(db,"sessions",entry.id)); loadSessions(); };
+          list.appendChild(row);
+          if(game.toLowerCase()==="b2" || game.toLowerCase()==="kategorie b2"){
+            const b2row = row.cloneNode(true);
+            b2.appendChild(b2row);
+          }
+        });
+      });
+    }
+    loadSessions();
+    /* Session speichern */
+    document.getElementById("saveBtn").addEventListener("click", async()=>{
+      const d = {
+        name: name.value.trim(),
+        game: game.value.trim(),
+        dateFrom: dateFrom.value,
+        dateTo: dateTo.value,
+        timeFrom: timeFrom.value.trim(),
+        timeTo: timeTo.value.trim(),
+        tzoffset: tzoffset.value.trim()
+      };
+      if(!d.name||!d.game||!d.dateFrom||!d.dateTo||!d.timeFrom||!d.timeTo||!d.tzoffset){ return alert("Bitte alles ausfüllen!"); }
+      await addDoc(colRef,d);
+      sessionForm.reset();
+      tzoffset.value=formatOffset(autoOffset);
+      loadSessions();
+    });
+  </script>
+</body>
+</html>
