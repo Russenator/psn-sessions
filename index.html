@@ -120,20 +120,18 @@
   <script type="module">
     // Warten, bis das DOM vollständig geladen ist
     document.addEventListener("DOMContentLoaded", function () {
-
-      // Sicherstellen, dass der Button existiert
+      // Button-Referenz
       const saveBtn = document.getElementById("saveBtn");
-      console.log(saveBtn);  // Überprüfen, ob der Button existiert
+      console.log(saveBtn);  // Überprüfe in der Konsole, ob der Button existiert
 
       if (saveBtn) {
         saveBtn.addEventListener("click", async () => {
-          // Dein Event-Handler-Code für "Save session" hier
+          // Dein Event-Handler-Code für "Save session"
           alert("Session gespeichert!");
         });
       } else {
         console.error("Element mit ID 'saveBtn' nicht gefunden!");
       }
-      
     });
   </script>
 </body>
