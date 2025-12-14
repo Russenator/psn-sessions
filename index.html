@@ -125,17 +125,20 @@ function convertToLocalTime(t, tz, locale = 'de-DE') {
       if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
     }
 
-    // Erstellt ein Date-Objekt auf Basis der berechneten Stunden und Minuten
-    const remote = new Date();
-    remote.setHours(h - offset, m, 0, 0);  // Die Zeit wird um den Offset korrigiert
+    // Berechne das UTC Datum (mit Stunden und Minuten)
+    const utcDate = new Date(Date.UTC(2023, 0, 1, h, m)); // Irgendwann in der Vergangenheit, für eine korrekte UTC-Zeit
+    
+    // Jetzt wende den Offset an (Offset wird zu den Stunden addiert, um zur lokalen Zeit zu kommen)
+    utcDate.setHours(utcDate.getHours() + offset);
 
     // Rückgabe der lokalen Zeit
-    return remote.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }); 
+    return utcDate.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }); 
   } catch (e) {
     console.error('Fehler beim Parsen der Zeit:', t, e);
     return t;  // Im Fehlerfall die Eingabewerte zurückgeben
   }
 }
+
   
 async function renderSessions(){
   sessionsEl.innerHTML = '';
