@@ -124,10 +124,12 @@ function convertToLocalTime(t, tz, locale = 'de-DE') {
       if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
     }
 
-    // Erstelle das Datum in UTC mit der angegebenen Zeit
+    // Erstelle das Datum in UTC mit der angegebenen Zeit (Wir nehmen als Beispiel den 1. Januar 2023)
     const utcDate = new Date(Date.UTC(2023, 0, 1, h, m)); // Irgendwann im Jahr 2023, aber nur die Zeit ist wichtig
 
-    // Wende den Offset an (um den Unterschied zur lokalen Zeit zu berücksichtigen)
+    // Wende den Offset nur an, wenn wir eine UTC-Zeit als Basis haben
+    // Wenn der Wert für `tz` = 1 (deine Zeit in Deutschland), dann müssen wir ihn anpassen, 
+    // aber wenn du in Deutschland bist, sollte es nicht nochmal verschoben werden.
     utcDate.setHours(utcDate.getHours() + offset);
 
     // Wähle das passende Format basierend auf der Sprache
@@ -147,6 +149,7 @@ function convertToLocalTime(t, tz, locale = 'de-DE') {
     return t;  // Im Fehlerfall die Eingabewerte zurückgeben
   }
 }
+
   
 async function renderSessions(){
   sessionsEl.innerHTML = '';
