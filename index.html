@@ -131,7 +131,9 @@ function convertToLocalTime(t, tz){
   const d=new Date();
   d.setHours(h - offset + autoOffset, m, 0, 0);
   return d.toLocaleTimeString(getLocale(),{hour:'2-digit',minute:'2-digit'});
-}(getLocale(),{hour:'2-digit',minute:'2-digit'});
+}
+
+(),{hour:'2-digit',minute:'2-digit'});
 }
 
 async function loadSessions(){
@@ -168,11 +170,6 @@ async function loadSessions(){
       <button class="delete">X</button>`;
 
       box.querySelector('.delete').onclick=async()=>{ await deleteDoc(doc(db,'sessions',entry.id)); loadSessions(); };
-      sessionsEl.appendChild(box);
-    });
-  });
-}
-loadSessions(); };
     sessionsEl.appendChild(box);
   });
 }
