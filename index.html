@@ -15,8 +15,14 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
 .title h1{font-size:20px;margin:0}
 .controls{display:flex;gap:8px;align-items:center}
 .card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(16,24,40,.06)}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.input{width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefc}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); /* Mehr Platz für Eingabefelder */
+gap:12px} /* Erhöht den Abstand zwischen den Feldern */
+
+.input{width:90%; /* Stellt sicher, dass die Eingabefelder die gesamte Breite des Containers ausnutzen */
+padding:12px; /* Fügt mehr Platz innerhalb der Felder hinzu */
+border-radius:10px;
+font-size: 12px; /* Macht den Text in den Feldern größer und leserlicher */
+border:1px solid #e6eefc}
 .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
 .row{display:flex;gap:12px;align-items:center}
 .sessions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
@@ -24,7 +30,88 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
 .small{font-size:13px;color:var(--muted)}
 .delete{background:#ff4d4f;border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
 .toggle{background:#111;color:#fff;padding:8px;border-radius:8px;border:none}
-.dark{--bg:#0b1220;--card:#0f1724;color:#e6eef8}
+/* Allgemeine Darkmode-Stile */
+.dark {
+  --bg: #0b1220;
+  --card: #0f1724;
+  --accent: #4a8bff;
+  --muted: #e6eef8;
+  color: var(--muted);  /* Allgemeine Textfarbe für Darkmode */
+}
+
+/* Überschriften im Darkmode */
+.dark .title h1 {
+  color: #ffffff;  /* Farbe für Hauptüberschrift */
+}
+
+.dark h3 {
+  color: #ffffff;  /* Farbe für die "Sessions"-Überschrift */
+}
+
+.dark .controls select,
+.dark .controls button {
+  color: #ffffff;  /* Schriftfarbe für Buttons und Inputs im Darkmode */
+}
+
+/* Deutlicher abgehobene Session Box im Darkmode */
+.dark .session {
+  background: #2d3748;  /* Dunklerer Hintergrund mit höherem Kontrast */
+  border: 2px solid #2b6cb0;  /* Hellerer, kontrastreicher Rand */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);  /* Stärkerer Schatten für mehr Tiefe */
+  padding: 16px;
+  margin-bottom: 15px;
+  border-radius: 10px;  /* Abgerundete Ecken */
+  color: #e5e7eb;  /* Helle Schriftfarbe für besseren Kontrast */
+}
+
+/* Weitere Anpassung für kleine Texte (z.B. Datum und Uhrzeit) */
+.dark .session .small {
+  color: #cbd5e0;  /* Hellerer Farbton für kleinere Texte */
+}
+
+/* Löschen-Button für beide Modi */
+.session .delete {
+  background-color: #f56565;  /* Helles Rot für den Löschen-Button */
+  color: white;
+  border: none;
+  width: 40px;  /* Fixiere die Breite des Buttons */
+  height: 40px;  /* Fixiere die Höhe des Buttons, um ihn rund zu machen */
+  border-radius: 50%;  /* Macht den Button rund */
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* Zentriert das "x" im Button */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.session .delete:hover {
+  background-color: #e53e3e;  /* Helleres Rot beim Hover */
+}
+
+.dark .toggle {
+  background: #111;
+  color: #fff;  /* Dunklerer Hintergrund für den Darkmode-Umschalter */
+}
+/* Anpassung für das Dropdown-Menü im Darkmode */
+.dark .controls select {
+  background-color: #333;  /* Dunkler Hintergrund für das Dropdown */
+  color: #fff;  /* Helle Schriftfarbe für den Text */
+  border: 1px solid #555;  /* Hellerer Rand */
+}
+
+.dark .controls select option {
+  background-color: #333;  /* Dunkler Hintergrund für jede Option */
+  color: #fff;  /* Helle Schriftfarbe für Optionen */
+}
+
+.dark .controls select:focus {
+  border-color: #4a8bff;  /* Hellerer Rand bei Fokus */
+}
+
+.dark .controls select option:hover {
+  background-color: #444;  /* Etwas hellerer Hintergrund, wenn die Option ausgewählt wird */
+}
+
 .flatpickr-calendar{transition:transform .22s cubic-bezier(.16,.84,.44,1),opacity .18s;z-index:9999;}
 .flatpickr-calendar.open{transform:scale(1);opacity:1}
 .flatpickr-calendar.closing{transform:scale(.95);opacity:0}
@@ -52,7 +139,7 @@ body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",
       <input id="dateTo" class="input" placeholder="End date">
       <input id="timeFrom" class="input" placeholder="Start time (hh:mm or 6:30 PM)">
       <input id="timeTo" class="input" placeholder="End time">
-      <input id="tzoffset" class="input" placeholder="UTC offset (e.g. +1)" required>
+      <input id="tzoffset" class="input" placeholder="GMT/UTC offset (e.g. +1)" required>
       <div style="display:flex;align-items:center;"> <button id="saveBtn" class="btn" type="button">Save session</button></div>
     </form>
   </div>
@@ -162,7 +249,7 @@ async function renderSessions(){
       left.innerHTML = `<div style="font-weight:600">${s.name} — ${s.game}</div><div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div><div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>`;
       const del = document.createElement("button");
       del.className='delete'; del.textContent='×'; del.title = 'Delete';
-      del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'MEIN_GEHEIM_KEY') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); };
+      del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'Grandia2025') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); };
       wrap.appendChild(left); wrap.appendChild(del);
       sessionsEl.appendChild(wrap);
     });
