@@ -4,306 +4,296 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Sitzungsplaner — stabile Version</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <style>
-:root{--bg:#f4f8ff;--card:#fff;--accent:#4a8bff;--muted:#6b7280}
-body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#0f172a}
+:root{
+  --bg:#f4f8ff;
+  --card:#fff;
+  --accent:#4a8bff;
+  --muted:#6b7280
+}
+
+body{
+  font-family:Inter,system-ui;
+  margin:0;
+  background:var(--bg);
+  color:#0f172a
+}
+
 .container{max-width:900px;margin:28px auto;padding:20px}
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.title{display:flex;gap:12px;align-items:center}
-.title h1{font-size:20px;margin:0}
-.controls{display:flex;gap:8px;align-items:center}
-.card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(16,24,40,.06)}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); /* Mehr Platz für Eingabefelder */
-gap:12px} /* Erhöht den Abstand zwischen den Feldern */
 
-.input{width:90%; /* Stellt sicher, dass die Eingabefelder die gesamte Breite des Containers ausnutzen */
-padding:12px; /* Fügt mehr Platz innerhalb der Felder hinzu */
-border-radius:10px;
-font-size: 12px; /* Macht den Text in den Feldern größer und leserlicher */
-border:1px solid #e6eefc}
-.btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
-.row{display:flex;gap:12px;align-items:center}
-.sessions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
-.session{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;border:1px solid #eef4ff;background:linear-gradient(180deg,#fff,#fbfdff)}
-.small{font-size:13px;color:var(--muted)}
-.delete{background:#ff4d4f;border:none;color:#fff;padding:8px;border-radius:8px;cursor:pointer}
-.toggle{background:#111;color:#fff;padding:8px;border-radius:8px;border:none}
-/* Allgemeine Darkmode-Stile */
-.dark {
-  --bg: #0b1220;
-  --card: #0f1724;
-  --accent: #4a8bff;
-  --muted: #e6eef8;
-  color: var(--muted);  /* Allgemeine Textfarbe für Darkmode */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center
 }
 
-/* Überschriften im Darkmode */
-.dark .title h1 {
-  color: #ffffff;  /* Farbe für Hauptüberschrift */
+.title h1{
+  font-size:20px;
+  margin:0
 }
 
-.dark h3 {
-  color: #ffffff;  /* Farbe für die "Sessions"-Überschrift */
+.controls{display:flex;gap:8px}
+
+.card{
+  background:var(--card);
+  padding:18px;
+  border-radius:14px;
+  box-shadow:0 8px 30px rgba(16,24,40,.06)
 }
 
-.dark .controls select,
-.dark .controls button {
-  color: #ffffff;  /* Schriftfarbe für Buttons und Inputs im Darkmode */
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:12px
 }
 
-/* Deutlicher abgehobene Session Box im Darkmode */
-.dark .session {
-  background: #2d3748;  /* Dunklerer Hintergrund mit höherem Kontrast */
-  border: 2px solid #2b6cb0;  /* Hellerer, kontrastreicher Rand */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);  /* Stärkerer Schatten für mehr Tiefe */
-  padding: 16px;
-  margin-bottom: 15px;
-  border-radius: 10px;  /* Abgerundete Ecken */
-  color: #e5e7eb;  /* Helle Schriftfarbe für besseren Kontrast */
+.input{
+  width:90%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #e6eefc
 }
 
-/* Weitere Anpassung für kleine Texte (z.B. Datum und Uhrzeit) */
-.dark .session .small {
-  color: #cbd5e0;  /* Hellerer Farbton für kleinere Texte */
+.btn{
+  background:var(--accent);
+  color:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer
 }
 
-/* Löschen-Button für beide Modi */
-.session .delete {
-  background-color: #f56565;  /* Helles Rot für den Löschen-Button */
-  color: white;
-  border: none;
-  width: 40px;  /* Fixiere die Breite des Buttons */
-  height: 40px;  /* Fixiere die Höhe des Buttons, um ihn rund zu machen */
-  border-radius: 50%;  /* Macht den Button rund */
-  display: flex;
-  align-items: center;
-  justify-content: center;  /* Zentriert das "x" im Button */
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.sessions{
+  margin-top:18px;
+  display:flex;
+  flex-direction:column;
+  gap:10px
 }
 
-.session .delete:hover {
-  background-color: #e53e3e;  /* Helleres Rot beim Hover */
+.session{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #eef4ff;
+  background:#fff
 }
 
-.dark .toggle {
-  background: #111;
-  color: #fff;  /* Dunklerer Hintergrund für den Darkmode-Umschalter */
-}
-/* Anpassung für das Dropdown-Menü im Darkmode */
-.dark .controls select {
-  background-color: #333;  /* Dunkler Hintergrund für das Dropdown */
-  color: #fff;  /* Helle Schriftfarbe für den Text */
-  border: 1px solid #555;  /* Hellerer Rand */
+.small{
+  font-size:13px;
+  color:var(--muted)
 }
 
-.dark .controls select option {
-  background-color: #333;  /* Dunkler Hintergrund für jede Option */
-  color: #fff;  /* Helle Schriftfarbe für Optionen */
+.delete{
+  background:#f56565;
+  border:none;
+  color:#fff;
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  cursor:pointer
 }
 
-.dark .controls select:focus {
-  border-color: #4a8bff;  /* Hellerer Rand bei Fokus */
+.toggle{
+  background:#111;
+  color:#fff;
+  padding:8px;
+  border-radius:8px;
+  border:none
 }
 
-.dark .controls select option:hover {
-  background-color: #444;  /* Etwas hellerer Hintergrund, wenn die Option ausgewählt wird */
+/* Darkmode */
+.dark{
+  --bg:#0b1220;
+  --card:#0f1724;
+  --muted:#e6eef8;
+  color:var(--muted)
 }
 
-.flatpickr-calendar{transition:transform .22s cubic-bezier(.16,.84,.44,1),opacity .18s;z-index:9999;}
-.flatpickr-calendar.open{transform:scale(1);opacity:1}
-.flatpickr-calendar.closing{transform:scale(.95);opacity:0}
+.dark .title h1{color:#fff}
+
+.dark .session{
+  background:#2d3748;
+  border:2px solid #2b6cb0;
+  color:#e5e7eb
+}
+
+.dark .small{color:#cbd5e0}
+
+/* Fix: Überschrift "Sessions" */
+.dark h3{
+  color:#ffffff
+}
+
+/* Spiel-Gruppen */
+.game-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:18px 0 6px;
+  padding:10px 14px;
+  border-radius:10px;
+  background:#eef4ff;
+  font-weight:600
+}
+
+.dark .game-header{
+  background:#1e293b;
+  color:#fff
+}
+
+.game-count{
+  font-size:13px;
+  color:#334155
+}
+
+.dark .game-count{
+  color:#cbd5e1
+}
 </style>
 </head>
+
 <body>
 <div class="container">
-  <div class="header">
-    <div class="title"><svg width="28"height="28"viewBox="0 0 24 24"fill="none"xmlns="http://www.w3.org/2000/svg"><path d="M7 11h5v5H7z"fill="#4a8bff"/><path d="M3 5h18v16H3z"stroke="#4a8bff"stroke-width="1.2"fill="none"/></svg><h1>Sitzungsplaner — stabile Version</h1></div>
-    <div class="controls">
-      <button id="themeBtn" class="toggle">Dark</button>
-      <select id="langSelect" class="input" style="width:auto">
-        <option value="auto">Auto</option>
-        <option value="de">Deutsch</option>
-        <option value="en">English</option>
-      </select>
-    </div>
-  </div>
 
-  <div class="card" style="margin-top:16px">
-    <form id="sessionForm" class="form-grid">
-      <input id="name" class="input" placeholder="Name (PSN)" autocomplete="off">
-      <input id="game" class="input" placeholder="Game" autocomplete="off">
-      <input id="dateFrom" class="input" placeholder="Start date">
-      <input id="dateTo" class="input" placeholder="End date">
-      <input id="timeFrom" class="input" placeholder="Start time (hh:mm or 6:30 PM)">
-      <input id="timeTo" class="input" placeholder="End time">
-      <input id="tzoffset" class="input" placeholder="GMT/UTC offset (e.g. +1)" required>
-      <div style="display:flex;align-items:center;"> <button id="saveBtn" class="btn" type="button">Save session</button></div>
-    </form>
+<div class="header">
+  <div class="title">
+    <h1>Sitzungsplaner — stabile Version</h1>
   </div>
+  <div class="controls">
+    <button id="themeBtn" class="toggle">Dark</button>
+  </div>
+</div>
 
-  <div class="card" style="margin-top:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h3 style="margin:0">Sessions</h3>
-    </div>
-    <div id="sessions" class="sessions" aria-live="polite"></div>
-  </div>
+<div class="card" style="margin-top:16px">
+<form id="sessionForm" class="form-grid">
+  <input id="name" class="input" placeholder="Name (PSN)">
+  <input id="game" class="input" placeholder="Game">
+  <input id="dateFrom" class="input" placeholder="Start date">
+  <input id="dateTo" class="input" placeholder="End date">
+  <input id="timeFrom" class="input" placeholder="Start time">
+  <input id="timeTo" class="input" placeholder="End time">
+  <input id="tzoffset" class="input" placeholder="UTC Offset (z.B. +1)">
+  <button id="saveBtn" class="btn" type="button">Save session</button>
+</form>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h3>Sessions</h3>
+  <div id="sessions" class="sessions"></div>
+</div>
+
 </div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen", storageBucket: "psn-planen.firebasestorage.app", messagingSenderId: "1089591052960", appId: "1:1089591052960:web:069c515084f2105b22d7c5" };
+const firebaseConfig = {
+  apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
+  authDomain: "psn-planen.firebaseapp.com",
+  projectId: "psn-planen"
+};
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db,'sessions');
 
-const browserLang = navigator.language || 'de';
-const short = browserLang.split('-')[0];
-const use12h = new Intl.DateTimeFormat(browserLang, { hour:'numeric' }).formatToParts(new Date()).some(p=>p.type==='dayPeriod');
-
-const dateFrom = document.getElementById('dateFrom');
-const dateTo = document.getElementById('dateTo');
-const tzInput = document.getElementById('tzoffset');
 const sessionsEl = document.getElementById('sessions');
-const autoOffset = -new Date().getTimezoneOffset()/60;
-function formatOffset(v){ if(v===null||v===undefined||v==='') return ''; const num = Number(v); if(isNaN(num)) return v; return (num>=0?'+':'')+num; }
-tzInput.value = formatOffset(autoOffset);
 
+/* Kalender */
 await import('https://cdn.jsdelivr.net/npm/flatpickr');
+flatpickr("#dateFrom",{altInput:true,altFormat:"d.m.Y",dateFormat:"Y-m-d"});
+flatpickr("#dateTo",{altInput:true,altFormat:"d.m.Y",dateFormat:"Y-m-d"});
 
-function getLocale(){ const sel = document.getElementById('langSelect').value; if(sel==='auto') return browserLang; return sel; }
-
-function initCalendar() {
-  const locale = getLocale();
-  
-  // Ermittlung des aktuellen Datums und Tages (Zahl zwischen 0 und 6, wobei 0 Sonntag ist und 6 Samstag)
-  const currentDay = new Date().getUTCDay(); // Holen des UTC-Wochentags (0 = Sonntag, 6 = Samstag)
-
-  // Wenn der lokale Wochentag Sonntag ist, setzen wir `weekStart` auf 0 (Sonntag), andernfalls auf 1 (Montag)
-  const weekStart = (currentDay === 0) ? 0 : 1;
-
-  flatpickr(dateFrom, { 
-    altInput: true, 
-    altFormat: locale.startsWith('de') ? 'd.m.Y' : 'F j, Y', 
-    dateFormat: 'Y-m-d', 
-    locale, 
-    weekStart: weekStart, // Dynamische Wocheinstellung basierend auf UTC
-    allowInput: true 
+/* Gruppieren */
+function groupByGame(docs){
+  const map = {};
+  docs.forEach(d=>{
+    const s = d.data();
+    if(!map[s.game]) map[s.game] = [];
+    map[s.game].push({...s,id:d.id});
   });
-  
-  flatpickr(dateTo, { 
-    altInput: true, 
-    altFormat: locale.startsWith('de') ? 'd.m.Y' : 'F j, Y', 
-    dateFormat: 'Y-m-d', 
-    locale, 
-    weekStart: weekStart, // Dynamische Wocheinstellung basierend auf UTC
-    allowInput: true 
-  });
-}
-initCalendar();
-document.getElementById('langSelect').addEventListener('change', ()=>{ initCalendar(); });
-
-const themeBtn = document.getElementById('themeBtn');
-themeBtn.addEventListener('click', ()=>{
-  document.documentElement.classList.toggle('dark');
-  themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'Light' : 'Dark';
-});
-
-function convertToLocalTime(t, tz, locale = 'de-DE') {
-  try {
-    if (!t) return ''; // Keine Zeit übergeben
-
-    // Berechne den UTC-Offset (z.B. '1' für UTC+1)
-    const offset = parseFloat(tz);
-
-    // Zeit aufteilen (z.B. "7:47 PM" -> [7, 47, "PM"])
-    let [h, m, period] = t.split(/[: ]/);
-    h = Number(h);
-    m = Number(m) || 0;
-
-    // AM/PM-Umrechnung, falls vorhanden
-    if (period) {
-      period = period.toLowerCase();
-      if (period === "pm" && h < 12) h += 12;  // "7 PM" -> 19
-      if (period === "am" && h === 12) h = 0;  // "12 AM" -> 00 (Mitternacht)
-    }
-
-    // Wenn die Zeit bereits in UTC+1 vorliegt, wende den Offset nicht mehr an
-    // Erstelle das Datum mit der lokalen Zeit (angenommen, es ist schon UTC+1)
-    const localDate = new Date(2023, 0, 1, h, m);  // Beispiel-Datum, nur für Zeit erforderlich
-
-    // Rückgabe der lokalisierten Zeit ohne nochmaligen Offset
-    const options = {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: locale === 'en-US' || locale === 'en-GB',  // AM/PM für Englisch
-    };
-
-    // Erstelle die lokale Zeit im richtigen Format
-    const formatter = new Intl.DateTimeFormat(locale, options);
-
-    // Rückgabe der lokalisierten Zeit
-    return formatter.format(localDate);
-  } catch (e) {
-    console.error('Fehler beim Parsen der Zeit:', t, e);
-    return t;  // Im Fehlerfall die Eingabewerte zurückgeben
-  }
+  return map;
 }
 
-
-  
+/* Render */
 async function renderSessions(){
-  sessionsEl.innerHTML = '';
-  try{
-    const snap = await getDocs(colRef);
-    if(!snap || !snap.docs || snap.docs.length===0){ sessionsEl.innerHTML = '<div class="small">No sessions</div>'; return; }
-    snap.docs.forEach(d=>{
-      const s = d.data(); const id = d.id;
-      const wrap = document.createElement("div"); wrap.className='session';
-      const localStart = convertToLocalTime(s.start, s.tz);
-      const localEnd = convertToLocalTime(s.end, s.tz);
-      const left = document.createElement("div");
-      left.innerHTML = `<div style="font-weight:600">${s.name} — ${s.game}</div><div class="small">${formatDateDisplay(s.from)} → ${formatDateDisplay(s.to)}</div><div class="small">${localStart} – ${localEnd} (UTC${formatOffset(s.tz)})</div>`;
-      const del = document.createElement("button");
-      del.className='delete'; del.textContent='×'; del.title = 'Delete';
-      del.onclick = async ()=>{ const key = prompt('Admin-Key zum Löschen:'); if(key !== 'Grandia2025') return alert('Wrong key'); await deleteDoc(doc(db,'sessions',id)); await renderSessions(); };
-      wrap.appendChild(left); wrap.appendChild(del);
-      sessionsEl.appendChild(wrap);
+  sessionsEl.innerHTML='';
+  const snap = await getDocs(colRef);
+  if(snap.empty){
+    sessionsEl.innerHTML='<div class="small">No sessions</div>';
+    return;
+  }
+
+  const grouped = groupByGame(snap.docs);
+
+  Object.entries(grouped).forEach(([game,list])=>{
+    const header = document.createElement('div');
+    header.className='game-header';
+    header.innerHTML=`
+      <div>🎮 ${game}</div>
+      <div class="game-count">👥 ${list.length} Spieler</div>
+    `;
+    sessionsEl.appendChild(header);
+
+    list.forEach(s=>{
+      const el=document.createElement('div');
+      el.className='session';
+      el.innerHTML=`
+        <div>
+          <div style="font-weight:600">${s.name}</div>
+          <div class="small">${s.from} → ${s.to}</div>
+          <div class="small">${s.start} – ${s.end} (UTC${s.tz})</div>
+        </div>
+      `;
+
+      const del=document.createElement('button');
+      del.className='delete';
+      del.textContent='×';
+      del.onclick=async()=>{
+        const key=prompt('Admin-Key:');
+        if(key!=='Grandia2025')return;
+        await deleteDoc(doc(db,'sessions',s.id));
+        renderSessions();
+      };
+
+      el.appendChild(del);
+      sessionsEl.appendChild(el);
     });
-  }catch(e){ console.error(e); sessionsEl.innerHTML = '<div class="small">Error loading sessions</div>'; }
+  });
 }
 
-function formatDateDisplay(val){
-  try{
-    if(!val) return '';
-    const date = new Date(val);
-    if(isNaN(date)) return val;
-    return date.toLocaleDateString(getLocale(), {weekday:'short',year:'numeric',month:'2-digit',day:'2-digit'});
-  }catch(e){ return val; }
-}
+/* Save */
+saveBtn.onclick=async()=>{
+  const data={
+    name:name.value,
+    game:game.value,
+    from:dateFrom.value,
+    to:dateTo.value,
+    start:timeFrom.value,
+    end:timeTo.value,
+    tz:tzoffset.value
+  };
+  if(Object.values(data).some(v=>!v)) return alert('Alle Felder ausfüllen');
+  await addDoc(colRef,data);
+  sessionForm.reset();
+  renderSessions();
+};
 
-document.getElementById('saveBtn').addEventListener('click', async ()=>{
-  const name = document.getElementById('name').value.trim();
-  const game = document.getElementById('game').value.trim();
-  const from = (document.getElementById('dateFrom')._flatpickr?.input.value) || document.getElementById('dateFrom').value;
-  const to = (document.getElementById('dateTo')._flatpickr?.input.value) || document.getElementById('dateTo').value;
-  const start = document.getElementById('timeFrom').value.trim();
-  const end = document.getElementById('timeTo').value.trim();
-  const tz = formatOffset(document.getElementById('tzoffset').value.trim());
-  if(!name||!game||!from||!to||!start||!end||tz==='') return alert('Bitte alle Felder ausfüllen (UTC Offset Pflicht)');
-  try{
-    await addDoc(colRef,{name,game,from,to,start,end,tz});
-    document.getElementById('sessionForm').reset();
-    document.getElementById('tzoffset').value = formatOffset(autoOffset);
-    await renderSessions();
-  }catch(e){ console.error(e); alert('Save failed'); }
-});
+/* Darkmode */
+themeBtn.onclick=()=>{
+  document.documentElement.classList.toggle('dark');
+  themeBtn.textContent=
+    document.documentElement.classList.contains('dark')?'Light':'Dark';
+};
 
-await renderSessions();
+renderSessions();
 </script>
 </body>
 </html>
