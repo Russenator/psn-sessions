@@ -203,7 +203,7 @@ async function renderSessions(){
       el.className="session";
       el.innerHTML=`
         <div>
-          <div style="font-weight:600">🎮 ${s.name}</div>
+          <div style="font-weight:600">🎮${s.name}</div>
           <div class="small">📅 ${formatDateRange(s.from,s.to)}</div>
           <div class="small">⏰ ${formatTimeRange(s.from,s.to)}</div>
         </div>
