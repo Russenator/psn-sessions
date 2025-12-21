@@ -1,159 +1,56 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Sitzungsplaner — stabile Version</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitzungsplaner</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
 
 <style>
-:root{
+:root {
   --bg:#f4f8ff;
   --card:#fff;
   --accent:#4a8bff;
-  --muted:#6b7280
+  --muted:#6b7280;
 }
-
-body{
-  font-family:Inter,system-ui;
-  margin:0;
-  background:var(--bg);
-  color:#0f172a
-}
-
-.container{max-width:900px;margin:28px auto;padding:20px}
-
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center
-}
-
-.title h1{
-  font-size:20px;
-  margin:0
-}
-
-.controls{display:flex;gap:8px}
-
-.card{
-  background:var(--card);
-  padding:18px;
-  border-radius:14px;
-  box-shadow:0 8px 30px rgba(16,24,40,.06)
-}
-
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:12px
-}
-
-.input{
-  width:90%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #e6eefc
-}
-
-.btn{
-  background:var(--accent);
-  color:#fff;
-  padding:10px 14px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer
-}
-
-.sessions{
-  margin-top:18px;
-  display:flex;
-  flex-direction:column;
-  gap:10px
-}
-
-.session{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #eef4ff;
-  background:#fff
-}
-
-.small{
-  font-size:13px;
-  color:var(--muted)
-}
-
-.delete{
-  background:#f56565;
-  border:none;
-  color:#fff;
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  cursor:pointer
-}
-
-.toggle{
-  background:#111;
-  color:#fff;
-  padding:8px;
-  border-radius:8px;
-  border:none
-}
+body { font-family:Inter,sans-serif; background:var(--bg); margin:0; color:#0f172a; }
+.container { max-width:900px; margin:30px auto; padding:20px; }
+.header { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-bottom:16px; }
+.title { flex-grow:1; display:flex; align-items:center; font-weight:600; font-size:20px; }
+.card { background:var(--card); padding:18px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.06); margin-bottom:16px; }
+.form-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+.input { padding:10px; border-radius:10px; border:1px solid #e5e7eb; }
+.btn { background:var(--accent); color:#fff; border:none; border-radius:10px; padding:10px; cursor:pointer; }
+.sessions { display:flex; flex-direction:column; gap:12px; }
+.game-box { background:#eef4ff; border-radius:12px; padding:10px; }
+.game-title { font-weight:600; display:flex; justify-content:space-between; margin-bottom:6px; }
+.session { padding:6px 8px; border-radius:8px; background:#fff; border:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:14px; }
+.small { font-size:12px; color:var(--muted); }
+.delete { background:#ef4444; color:#fff; border:none; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:16px; }
+#langSelect, #themeBtn { width:auto; padding:6px 10px; border-radius:8px; border:1px solid #e5e7eb; cursor:pointer; font-size:14px; }
 
 /* Darkmode */
-.dark{
+.dark {
   --bg:#0b1220;
   --card:#0f1724;
+  --accent:#4a8bff;
   --muted:#e6eef8;
-  color:var(--muted)
+  color: var(--muted);
 }
+.dark .card { background: var(--card); color: var(--muted); }
+.dark .game-box { background: #1e293b; color: var(--muted); }
+.dark .session { background:#2d3748; border:1px solid #2b6cb0; color:#e5e7eb; }
+.dark .small { color: #cbd5e0; }
+.card h3 { color:#0f172a; margin-bottom:8px; }
+.dark h3 { color:#fff; }
 
-.dark .title h1{color:#fff}
-
-.dark .session{
-  background:#2d3748;
-  border:2px solid #2b6cb0;
-  color:#e5e7eb
-}
-
-.dark .small{color:#cbd5e0}
-
-/* Fix: Überschrift "Sessions" */
-.dark h3{
-  color:#ffffff
-}
-
-/* Spiel-Gruppen */
-.game-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin:18px 0 6px;
-  padding:10px 14px;
-  border-radius:10px;
-  background:#eef4ff;
-  font-weight:600
-}
-
-.dark .game-header{
-  background:#1e293b;
-  color:#fff
-}
-
-.game-count{
-  font-size:13px;
-  color:#334155
-}
-
-.dark .game-count{
-  color:#cbd5e1
+/* Titel im Darkmode */
+.dark .title h1 {
+  color: #ffffff; /* Weiß für den Titel im Darkmode */
 }
 </style>
 </head>
@@ -161,136 +58,183 @@ body{
 <body>
 <div class="container">
 
-<div class="header">
-  <div class="title">
-    <h1>Sitzungsplaner — stabile Version</h1>
+  <div class="header">
+    <div class="title">
+      <h1 id="titleEl">
+        <img src="https://static.wikia.nocookie.net/esfinalfantasy/images/2/2d/PSN.jpg/revision/latest?cb=20100509141922" 
+             style="width:24px; height:24px; vertical-align:middle; margin-right:8px;">
+        Sitzungsplaner — stabile Version
+      </h1>
+    </div>
+    <select id="langSelect">
+      <option value="de" selected>Deutsch</option>
+      <option value="en">English</option>
+    </select>
+    <button id="themeBtn">☀️</button>
   </div>
-  <div class="controls">
-    <button id="themeBtn" class="toggle">Dark</button>
+
+  <div class="card">
+    <form id="sessionForm" class="form-grid">
+      <input id="name" class="input" placeholder="Name">
+      <input id="game" class="input" placeholder="Spiel">
+      <input id="dateRange" class="input" placeholder="Datum & Uhrzeit">
+      <input id="tzoffset" class="input" placeholder="UTC Offset (z.B. +1)">
+      <button id="saveBtn" class="btn" type="button">Session speichern</button>
+    </form>
   </div>
-</div>
 
-<div class="card" style="margin-top:16px">
-<form id="sessionForm" class="form-grid">
-  <input id="name" class="input" placeholder="Name (PSN)">
-  <input id="game" class="input" placeholder="Game">
-  <input id="dateFrom" class="input" placeholder="Start date">
-  <input id="dateTo" class="input" placeholder="End date">
-  <input id="timeFrom" class="input" placeholder="Start time">
-  <input id="timeTo" class="input" placeholder="End time">
-  <input id="tzoffset" class="input" placeholder="UTC Offset (z.B. +1)">
-  <button id="saveBtn" class="btn" type="button">Save session</button>
-</form>
-</div>
-
-<div class="card" style="margin-top:16px">
-  <h3>Sessions</h3>
-  <div id="sessions" class="sessions"></div>
-</div>
+  <div class="card">
+    <h3>Sessions</h3>
+    <div id="sessions" class="sessions"></div>
+  </div>
 
 </div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
   authDomain: "psn-planen.firebaseapp.com",
   projectId: "psn-planen"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const colRef = collection(db,'sessions');
+const colRef = collection(db, "sessions");
 
-const sessionsEl = document.getElementById('sessions');
+const tzInput = document.getElementById("tzoffset");
+const dateInput = document.getElementById("dateRange");
+const langSelect = document.getElementById("langSelect");
+const nameInput = document.getElementById("name");
+const gameInput = document.getElementById("game");
+const saveBtn = document.getElementById("saveBtn");
+const sessionsEl = document.getElementById("sessions");
+const themeBtn = document.getElementById("themeBtn");
+const titleEl = document.getElementById("titleEl");
 
-/* Kalender */
-await import('https://cdn.jsdelivr.net/npm/flatpickr');
-flatpickr("#dateFrom",{altInput:true,altFormat:"d.m.Y",dateFormat:"Y-m-d"});
-flatpickr("#dateTo",{altInput:true,altFormat:"d.m.Y",dateFormat:"Y-m-d"});
+// Automatischer UTC Offset
+const autoOffset = -new Date().getTimezoneOffset() / 60;
+tzInput.value = (autoOffset>=0?"+":"")+autoOffset;
 
-/* Gruppieren */
-function groupByGame(docs){
-  const map = {};
-  docs.forEach(d=>{
-    const s = d.data();
-    if(!map[s.game]) map[s.game] = [];
-    map[s.game].push({...s,id:d.id});
-  });
+// Flatpickr initial
+let fp = flatpickr(dateInput, {
+  locale: flatpickr.l10ns.de,
+  enableTime: true,
+  time_24hr: true,
+  dateFormat: "Y-m-d H:i",
+  altInput: true,
+  altFormat: "d.m.Y H:i",
+  mode: "range",
+  weekStart: 1
+});
+
+// Sprache wechseln
+langSelect.addEventListener("change", () => {
+  if(langSelect.value === "de") {
+    fp.set("locale", flatpickr.l10ns.de);
+    fp.set("altFormat", "d.m.Y H:i");
+    fp.set("weekStart", 1);
+    dateInput.placeholder = "Datum & Uhrzeit";
+    fp.altInput.placeholder = "Datum & Uhrzeit";
+    nameInput.placeholder = "Name";
+    gameInput.placeholder = "Spiel";
+    tzInput.placeholder = "UTC Offset (z.B. +1)";
+    saveBtn.textContent = "Session speichern";
+    titleEl.innerHTML = '<img src="https://static.wikia.nocookie.net/esfinalfantasy/images/2/2d/PSN.jpg/revision/latest?cb=20100509141922" style="width:24px; height:24px; vertical-align:middle; margin-right:8px;"> Sitzungsplaner';
+  } else {
+    fp.set("locale", undefined);
+    fp.set("altFormat", "m/d/Y H:i");
+    fp.set("weekStart", 0);
+    dateInput.placeholder = "Date & Time";
+    fp.altInput.placeholder = "Date & Time";
+    nameInput.placeholder = "Name";
+    gameInput.placeholder = "Game";
+    tzInput.placeholder = "UTC Offset (e.g. +1)";
+    saveBtn.textContent = "Save Session";
+    titleEl.innerHTML = '<img src="https://static.wikia.nocookie.net/esfinalfantasy/images/2/2d/PSN.jpg/revision/latest?cb=20100509141922" style="width:24px; height:24px; vertical-align:middle; margin-right:8px;"> Session Planner';
+  }
+});
+
+// Darkmode
+themeBtn.addEventListener("click", ()=>{
+  document.documentElement.classList.toggle("dark");
+  themeBtn.textContent = document.documentElement.classList.contains("dark")?"🌙":"☀️";
+});
+
+// Formatierungen
+function toUTC(date){ return date.toISOString(); }
+function formatTimeRange(fromISO,toISO){
+  const from=new Date(fromISO);
+  const to=new Date(toISO);
+  return `${from.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})} – ${to.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
+}
+function formatDateRange(fromISO,toISO){
+  const from=new Date(fromISO);
+  const to=new Date(toISO);
+  const sameDay = from.getFullYear()===to.getFullYear() && from.getMonth()===to.getMonth() && from.getDate()===to.getDate();
+  return sameDay ? from.toLocaleDateString() : `${from.toLocaleDateString()} – ${to.toLocaleDateString()}`;
+}
+function groupByGame(sessions){
+  const map={};
+  sessions.forEach(s=>{ if(!map[s.game]) map[s.game]=[]; map[s.game].push(s); });
   return map;
 }
 
-/* Render */
+// Sessions anzeigen
 async function renderSessions(){
-  sessionsEl.innerHTML='';
-  const snap = await getDocs(colRef);
-  if(snap.empty){
-    sessionsEl.innerHTML='<div class="small">No sessions</div>';
-    return;
-  }
+  sessionsEl.innerHTML="";
+  const snap=await getDocs(colRef);
+  if(snap.empty){ sessionsEl.innerHTML="<div class='small'>Keine Sessions</div>"; return; }
 
-  const grouped = groupByGame(snap.docs);
+  const sessions=snap.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>new Date(a.from)-new Date(b.from));
+  const grouped=groupByGame(sessions);
 
-  Object.entries(grouped).forEach(([game,list])=>{
-    const header = document.createElement('div');
-    header.className='game-header';
-    header.innerHTML=`
-      <div>🎮 ${game}</div>
-      <div class="game-count">👥 ${list.length} Spieler</div>
-    `;
-    sessionsEl.appendChild(header);
+  for(const [game,list] of Object.entries(grouped)){
+    const box=document.createElement("div");
+    box.className="game-box";
+    const title=document.createElement("div");
+    title.className="game-title";
+    title.innerHTML=`<span>${game}</span><span>👥 ${list.length}</span>`;
+    box.appendChild(title);
 
     list.forEach(s=>{
-      const el=document.createElement('div');
-      el.className='session';
+      const el=document.createElement("div");
+      el.className="session";
       el.innerHTML=`
         <div>
-          <div style="font-weight:600">${s.name}</div>
-          <div class="small">${s.from} → ${s.to}</div>
-          <div class="small">${s.start} – ${s.end} (UTC${s.tz})</div>
+          <div style="font-weight:600">🎮 ${s.name}</div>
+          <div class="small">📅 ${formatDateRange(s.from,s.to)}</div>
+          <div class="small">⏰ ${formatTimeRange(s.from,s.to)}</div>
         </div>
       `;
-
-      const del=document.createElement('button');
-      del.className='delete';
-      del.textContent='×';
-      del.onclick=async()=>{
-        const key=prompt('Admin-Key:');
-        if(key!=='Grandia2025')return;
-        await deleteDoc(doc(db,'sessions',s.id));
-        renderSessions();
-      };
-
+      const del=document.createElement("button");
+      del.className="delete";
+      del.textContent="×";
+      del.onclick=async()=>{if(prompt("Admin-Key")!=="Grandia2025")return;await deleteDoc(doc(db,"sessions",s.id));renderSessions();}
       el.appendChild(del);
-      sessionsEl.appendChild(el);
+      box.appendChild(el);
     });
-  });
+
+    sessionsEl.appendChild(box);
+  }
 }
 
-/* Save */
+// Session speichern
 saveBtn.onclick=async()=>{
+  if(fp.selectedDates.length!==2) return alert(langSelect.value==="de"?"Start & Ende auswählen":"Select start & end");
   const data={
-    name:name.value,
-    game:game.value,
-    from:dateFrom.value,
-    to:dateTo.value,
-    start:timeFrom.value,
-    end:timeTo.value,
-    tz:tzoffset.value
+    name:nameInput.value.trim(),
+    game:gameInput.value.trim(),
+    from:toUTC(fp.selectedDates[0]),
+    to:toUTC(fp.selectedDates[1]),
+    tz:tzInput.value
   };
-  if(Object.values(data).some(v=>!v)) return alert('Alle Felder ausfüllen');
+  if(!data.name||!data.game) return alert(langSelect.value==="de"?"Alle Felder ausfüllen":"Fill all fields");
   await addDoc(colRef,data);
-  sessionForm.reset();
+  document.getElementById("sessionForm").reset();
+  tzInput.value = (autoOffset>=0?"+":"")+autoOffset;
   renderSessions();
-};
-
-/* Darkmode */
-themeBtn.onclick=()=>{
-  document.documentElement.classList.toggle('dark');
-  themeBtn.textContent=
-    document.documentElement.classList.contains('dark')?'Light':'Dark';
 };
 
 renderSessions();
