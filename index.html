@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PSN Sessionsplaner — Final Stable Edition</title>
+<title>PSN Sessionsplaner — Timezone Edition</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -35,7 +35,7 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 .form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; align-items: center; }
 #name, #game { grid-column: span 6; }
 .flatpickr-wrapper { grid-column: span 7; }
-#tzoffset { grid-column: span 2; }
+#tzoffset { grid-column: span 2; text-align: center; font-weight: 600; }
 #saveBtn { grid-column: span 3 !important; }
 
 #saveBtn { 
@@ -92,7 +92,6 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 .dark .session-group{ background:#0f172a; border-color: #1e293b; }
 .dark .input { background: linear-gradient(180deg, #334155, #1e293b) !important; color: #ffffff !important; border-color: #475569 !important; }
 
-/* PLATZHALTER FARBEN FIX */
 .dark .input::placeholder { color: rgba(255, 255, 255, 0.8) !important; opacity: 1; }
 .dark .input::-webkit-input-placeholder { color: rgba(255, 255, 255, 0.8) !important; }
 .dark .input::-moz-placeholder { color: rgba(255, 255, 255, 0.8) !important; }
@@ -116,7 +115,7 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
       <input id="name" class="input" placeholder="Name">
       <input id="game" class="input" placeholder="Spiel">
       <div class="flatpickr-wrapper" id="fp-container"><input id="dateRange" class="input" placeholder="Datum & Zeit"></div>
-      <input id="tzoffset" class="input" placeholder="+1">
+      <input id="tzoffset" class="input" placeholder="UTC">
       <button id="saveBtn">💾</button>
     </form>
   </div>
@@ -137,7 +136,13 @@ const colRef = collection(db, "sessions");
 
 let fp;
 
-// Flatpickr Init (Deine bewährte Methode)
+// ZEITZONE AUTOMATISCH ERMITTELN
+function detectTimezone() {
+  const offset = -new Date().getTimezoneOffset() / 60;
+  const sign = offset >= 0 ? "+" : "";
+  document.getElementById("tzoffset").value = sign + offset;
+}
+
 function initFlatpickr(lang = 'de') {
   const container = document.getElementById('fp-container');
   const ph = lang === 'de' ? "Datum & Zeit" : "Date & Time";
@@ -155,14 +160,14 @@ function updateUIText(lang) {
   document.getElementById("game").placeholder = de ? "Spiel" : "Game";
 }
 
-// AUTOMATISCHE ERKENNUNG BEIM START
+// Initialer Start
 const userLang = navigator.language || navigator.userLanguage;
 const startLang = userLang.startsWith("en") ? "en" : "de";
 
-// Initialer Aufruf
 langSelect.value = startLang;
 updateUIText(startLang);
 initFlatpickr(startLang);
+detectTimezone(); // <--- Hier wird UTC automatisch ausgefüllt
 
 themeBtn.onclick = () => {
   document.documentElement.classList.toggle("dark");
@@ -231,7 +236,9 @@ async function renderSessions() {
         grouped[gameName][dateStr].sort((a, b) => a.from.localeCompare(b.from)).forEach(s => {
           const item = document.createElement("div");
           item.className = "session-item";
-          item.innerHTML = `<div class="player-name">🎮 ${s.name}</div><div class="date">📅 ${s.date}</div><div class="time">⏰ ${s.from} – ${s.to}</div>`;
+          // HIER ZEIGEN WIR DIE ZEITZONE JETZT AUCH BEI JEDEM EINTRAG AN
+          const tzDisplay = s.tz ? ` <small>(${s.tz})</small>` : "";
+          item.innerHTML = `<div class="player-name">🎮 ${s.name}</div><div class="date">📅 ${s.date}</div><div class="time">⏰ ${s.from} – ${s.to}${tzDisplay}</div>`;
           const delBtn = document.createElement("button"); delBtn.className = "delete"; delBtn.textContent = "×";
           delBtn.onclick = async () => {
             if (prompt("Admin-Key:") !== "Grandia2025") return;
@@ -266,7 +273,7 @@ saveBtn.onclick = async () => {
       date: cur.toLocaleDateString("de-DE"),
       from: start.toTimeString().slice(0, 5),
       to: end.toTimeString().slice(0, 5),
-      tz: document.getElementById("tzoffset").value
+      tz: document.getElementById("tzoffset").value.trim()
     });
     cur.setDate(cur.getDate() + 1);
   }
