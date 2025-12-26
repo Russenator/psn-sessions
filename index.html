@@ -34,7 +34,7 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 
 .form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; align-items: center; }
 #name, #game { grid-column: span 6; }
-.flatpickr-wrapper { grid-column: span 9; } /* TZ-Feld entfernt, da Automatik */
+.flatpickr-wrapper { grid-column: span 9; } 
 #saveBtn { grid-column: span 3 !important; }
 
 #saveBtn { 
@@ -135,7 +135,11 @@ function initFlatpickr(lang = 'de') {
   container.innerHTML = `<input id="dateRange" class="input" placeholder="${ph}">`;
   fp = flatpickr("#dateRange", { 
     locale: lang === 'de' ? flatpickr.l10ns.de : "default", 
-    enableTime: true, time_24hr: true, mode: "range", altInput: true, altFormat: "d.m.Y H:i"
+    enableTime: true, 
+    time_24hr: lang === 'de', // 24h für DE, 12h für EN
+    mode: "range", 
+    altInput: true, 
+    altFormat: lang === 'de' ? "d.m.Y H:i" : "m/d/Y h:i K" // h:i K zeigt AM/PM
   });
 }
 
@@ -152,7 +156,8 @@ langSelect.onchange = () => { initFlatpickr(langSelect.value); renderSessions();
 
 async function renderSessions() {
   const sessionsDiv = document.getElementById("sessions");
-  const isDe = langSelect.value === "de";
+  const lang = langSelect.value;
+  const isDe = lang === "de";
   sessionsDiv.innerHTML = `<p style="text-align:center;">${isDe ? "Lade..." : "Loading..."}</p>`;
   
   try {
@@ -161,14 +166,21 @@ async function renderSessions() {
     
     const data = snap.docs.map(d => {
       const s = d.data();
-      // Wenn startUTC existiert, rechnen wir um. Sonst nehmen wir den alten Text (Abwärtskompatibel)
       let displayTime, displayDate, sortKey;
       
       if (s.startUTC) {
         const localStart = new Date(s.startUTC);
         const localEnd = new Date(s.endUTC);
+        
         displayDate = localStart.toLocaleDateString(isDe ? "de-DE" : "en-US");
-        displayTime = `${localStart.getHours().toString().padStart(2,'0')}:${localStart.getMinutes().toString().padStart(2,'0')} – ${localEnd.getHours().toString().padStart(2,'0')}:${localEnd.getMinutes().toString().padStart(2,'0')}`;
+        
+        // AM/PM Logik für die Anzeige
+        displayTime = localStart.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', {
+          hour: '2-digit', minute: '2-digit', hour12: !isDe
+        }) + " – " + localEnd.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', {
+          hour: '2-digit', minute: '2-digit', hour12: !isDe
+        });
+
         sortKey = localStart.getTime();
       } else {
         displayDate = s.date || "---";
@@ -270,3 +282,4 @@ renderSessions();
 </script>
 </body>
 </html>
+
