@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PSN Sessionsplaner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSN Sessionsplaner — Final Layout</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -11,232 +11,251 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
 
 <style>
-:root {
-  --bg:#f4f8ff;
-  --card:#fff;
-  --accent:#4a8bff;
-  --muted:#6b7280;
+:root{
+  --bg:#f4f8ff; --card:#ffffff; --text:#0f172a; --accent:#4a8bff; --muted:#6b7280; --border:#e5e7eb;
 }
-body { font-family:Inter,sans-serif; background:var(--bg); margin:0; color:#0f172a; }
-.container { max-width:900px; margin:30px auto; padding:20px; }
-.header { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-bottom:16px; }
-.title { flex-grow:1; display:flex; align-items:center; font-weight:600; font-size:20px; }
-.card { background:var(--card); padding:18px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.06); margin-bottom:16px; }
-.form-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
-.input { padding:10px; border-radius:10px; border:1px solid #e5e7eb; }
-.btn { background:var(--accent); color:#fff; border:none; border-radius:10px; padding:10px; cursor:pointer; }
-.sessions { display:flex; flex-direction:column; gap:12px; }
-.game-box { background:#eef4ff; border-radius:12px; padding:10px; }
-.game-title { font-weight:600; display:flex; justify-content:space-between; margin-bottom:6px; }
-.session { padding:6px 8px; border-radius:8px; background:#fff; border:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:14px; }
-.small { font-size:12px; color:var(--muted); }
-.delete { background:#ef4444; color:#fff; border:none; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:16px; }
-#langSelect, #themeBtn { width:auto; padding:6px 10px; border-radius:8px; border:1px solid #e5e7eb; cursor:pointer; font-size:14px; }
+body{ font-family:'Inter', sans-serif; background:var(--bg); margin:0; padding:16px; color:var(--text); font-size: 14px; }
 
-/* Darkmode */
-.dark {
-  --bg:#0b1220;
-  --card:#0f1724;
-  --accent:#4a8bff;
-  --muted:#e6eef8;
-  color: var(--muted);
+/* FIXIERTER OBERER BEREICH */
+.sticky-top-area {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 880px; padding: 16px 16px 0 16px;
+  background: var(--bg); z-index: 1000; box-sizing: border-box;
 }
-.dark .card { background: var(--card); color: var(--muted); }
-.dark .game-box { background: #1e293b; color: var(--muted); }
-.dark .session { background:#2d3748; border:1px solid #2b6cb0; color:#e5e7eb; }
-.dark .small { color: #cbd5e0; }
-.card h3 { color:#0f172a; margin-bottom:8px; }
-.dark h3 { color:#fff; }
+.container { max-width:880px; margin:0 auto; padding-top: 230px; }
 
-/* Titel im Darkmode */
-.dark .title h1 {
-  color: #ffffff; /* Weiß für den Titel im Darkmode */
+.header{ display:flex; align-items:center; justify-content: space-between; padding:10px 16px; background:var(--card); border-radius:14px; margin-bottom:12px; box-shadow:0 4px 16px rgba(0,0,0,.08); }
+.title{ font-size:22px; font-weight:600; display:flex; align-items:center; gap:10px; }
+.title img{ width:28px; height:28px; }
+
+.header-controls { display: flex; gap: 8px; align-items: center; }
+#langSelect, #themeBtn{ padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color: inherit; cursor:pointer; height: 36px;}
+
+.card-form { background:var(--card); border-radius:14px; padding:16px; margin-bottom:16px; box-shadow:0 6px 20px rgba(0,0,0,.06); }
+
+.form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; align-items: center; }
+#name, #game { grid-column: span 6; }
+.flatpickr-wrapper { grid-column: span 7; }
+#tzoffset { grid-column: span 2; }
+#saveBtn { grid-column: span 3 !important; }
+
+#saveBtn { 
+  background: var(--accent); color: #fff; border: none; border-radius: 10px; 
+  height: 40px; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s; cursor: pointer; font-weight: 600;
 }
+#saveBtn:active, .delete-all:active, .delete:active, .delete-day:active { transform: scale(0.95); }
+
+.input{ padding:10px; border-radius:10px; border:1px solid var(--border); width: 100%; box-sizing: border-box; min-height: 40px; background: var(--card); color: inherit; outline: none; }
+
+/* SESSIONS ANZEIGE */
+.game-box{ background:#eef4ff; border-radius:14px; padding:12px; margin-bottom:20px; border: 1px solid transparent; }
+.game-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 2px 8px; }
+
+.delete-all { background:#ef4444; color:#fff; border:none; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: transform 0.1s;}
+
+.session-group { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, 180px); 
+  gap: 10px; 
+  padding: 12px 60px 12px 12px; /* Platz rechts für die Buttons reserviert */
+  background: #fff; 
+  border-radius: 12px; 
+  border: 1px solid var(--border); 
+  position: relative;
+  margin-bottom: 10px; 
+}
+
+/* GRUPPIERUNG RECHTS: 👥 OBEN, X UNTEN */
+.group-actions {
+  position: absolute; 
+  right: 12px; 
+  top: 12px; 
+  bottom: 12px;
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  gap: 8px;
+}
+
+.count-badge { background:var(--accent); color:#fff; padding:4px 8px; border-radius:30px; font-size:11px; font-weight:bold; white-space: nowrap; }
+
+.session-item { background: linear-gradient(180deg, #f5f9ff, #eaf1ff); border-radius: 10px; padding: 10px 35px 10px 10px; border: 1px solid #dbe5ff; position: relative; min-height: 80px; width: 180px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
+
+.player-name{ font-weight:600; font-size:14px; margin-bottom: 2px; }
+.date, .time{ font-size:13px; color:var(--muted); font-weight: 500; }
+.delete, .delete-day{ background:#ef4444; color:#fff; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: transform 0.1s;}
+.delete{ position:absolute; right:6px; top:50%; transform: translateY(-50%); width:20px; height:20px; border-radius:50%; font-size:11px; }
+.delete-day{ width:28px; height:28px; border-radius:50%; background:#dc2626; font-size: 18px; }
+
+/* DARKMODE */
+.dark{ --bg:#0b1220; --card:#1e293b; --text:#ffffff; --border:#334155; --muted:#ffffff; }
+.dark .sticky-top-area { background: #0b1220; }
+.dark .game-box{ background:#161f2e !important; border: 1px solid #334155 !important; }
+.dark .session-group{ background:#0f172a; border-color: #1e293b; }
+.dark .input { background: linear-gradient(180deg, #334155, #1e293b) !important; color: #ffffff !important; border-color: #475569 !important; }
+.dark .input::placeholder { color: rgba(255, 255, 255, 0.9) !important; }
+.dark .session-item { background: linear-gradient(180deg, #334155, #1e293b); border-color:#475569; }
+.dark .player-name { color: #0ea5e9; }
 </style>
 </head>
-
 <body>
-<div class="container">
 
+<div class="sticky-top-area">
   <div class="header">
-    <div class="title">
-      <h1 id="titleEl">
-        <img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png"
-             style="width:30px; height:30px; vertical-align:middle; margin-right:8px;">
-        PSN Sessionsplaner
-      </h1>
+    <div class="title" id="titleEl"><img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png"> PSN Sessionsplaner</div>
+    <div class="header-controls">
+      <select id="langSelect"><option value="de">Deutsch</option><option value="en">English</option></select>
+      <button id="themeBtn">☀️</button>
     </div>
-    <select id="langSelect">
-      <option value="de" selected>Deutsch</option>
-      <option value="en">English</option>
-    </select>
-    <button id="themeBtn">☀️</button>
   </div>
-
-  <div class="card">
-    <form id="sessionForm" class="form-grid">
+  <div class="card-form">
+    <form class="form-grid" onsubmit="return false;">
       <input id="name" class="input" placeholder="Name">
       <input id="game" class="input" placeholder="Spiel">
-      <input id="dateRange" class="input" placeholder="Datum & Uhrzeit">
-      <input id="tzoffset" class="input" placeholder="UTC Offset (z.B. +1)">
-      <button id="saveBtn" class="btn" type="button">Session speichern</button>
+      <div class="flatpickr-wrapper" id="fp-container"><input id="dateRange" class="input" placeholder="Datum & Zeit"></div>
+      <input id="tzoffset" class="input" placeholder="+1">
+      <button id="saveBtn">💾</button>
     </form>
   </div>
+</div>
 
-  <div class="card">
-    <h3>Sessions</h3>
-    <div id="sessions" class="sessions"></div>
-  </div>
-
+<div class="container">
+  <div id="sessions"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
-  authDomain: "psn-planen.firebaseapp.com",
-  projectId: "psn-planen"
-};
+const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db, "sessions");
 
-const tzInput = document.getElementById("tzoffset");
-const dateInput = document.getElementById("dateRange");
-const langSelect = document.getElementById("langSelect");
-const nameInput = document.getElementById("name");
-const gameInput = document.getElementById("game");
-const saveBtn = document.getElementById("saveBtn");
-const sessionsEl = document.getElementById("sessions");
-const themeBtn = document.getElementById("themeBtn");
-const titleEl = document.getElementById("titleEl");
+let fp;
+function initFlatpickr(lang = 'de') {
+  const container = document.getElementById('fp-container');
+  const ph = lang === 'de' ? "Datum & Zeit" : "Date & Time";
+  container.innerHTML = `<input id="dateRange" class="input" placeholder="${ph}">`;
+  fp = flatpickr("#dateRange", { 
+    locale: lang === 'de' ? flatpickr.l10ns.de : "default", 
+    enableTime: true, time_24hr: true, mode: "range", altInput: true, altFormat: "d.m.Y H:i"
+  });
+}
+initFlatpickr('de');
 
-// Automatischer UTC Offset
-const autoOffset = -new Date().getTimezoneOffset() / 60;
-tzInput.value = (autoOffset>=0?"+":"")+autoOffset;
-
-// Flatpickr initial
-let fp = flatpickr(dateInput, {
-  locale: flatpickr.l10ns.de,
-  enableTime: true,
-  time_24hr: true,
-  dateFormat: "Y-m-d H:i",
-  altInput: true,
-  altFormat: "d.m.Y H:i",
-  mode: "range",
-  weekStart: 1
-});
-
-// Sprache wechseln
-langSelect.addEventListener("change", () => {
-  if(langSelect.value === "de") {
-    fp.set("locale", flatpickr.l10ns.de);
-    fp.set("altFormat", "d.m.Y H:i");
-    fp.set("weekStart", 1);
-    dateInput.placeholder = "Datum & Uhrzeit";
-    fp.altInput.placeholder = "Datum & Uhrzeit";
-    nameInput.placeholder = "Name";
-    gameInput.placeholder = "Spiel";
-    tzInput.placeholder = "UTC Offset (z.B. +1)";
-    saveBtn.textContent = "Session speichern";
-    titleEl.innerHTML = '<img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png" style="width:24px; height:24px; vertical-align:middle; margin-right:8px;"> PSN-Sessionsplaner';
-  } else {
-    fp.set("locale", undefined);
-    fp.set("altFormat", "m/d/Y H:i");
-    fp.set("weekStart", 0);
-    dateInput.placeholder = "Date & Time";
-    fp.altInput.placeholder = "Date & Time";
-    nameInput.placeholder = "Name";
-    gameInput.placeholder = "Game";
-    tzInput.placeholder = "UTC Offset (e.g. +1)";
-    saveBtn.textContent = "Save Session";
-    titleEl.innerHTML = '<img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png" style="width:24px; height:24px; vertical-align:middle; margin-right:8px;"> Session Planner';
-  }
-});
-
-// Darkmode
-themeBtn.addEventListener("click", ()=>{
+themeBtn.onclick = () => {
   document.documentElement.classList.toggle("dark");
-  themeBtn.textContent = document.documentElement.classList.contains("dark")?"🌙":"☀️";
-});
-
-// Formatierungen
-function toUTC(date){ return date.toISOString(); }
-function formatTimeRange(fromISO,toISO){
-  const from=new Date(fromISO);
-  const to=new Date(toISO);
-  return `${from.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})} – ${to.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
-}
-function formatDateRange(fromISO,toISO){
-  const from=new Date(fromISO);
-  const to=new Date(toISO);
-  const sameDay = from.getFullYear()===to.getFullYear() && from.getMonth()===to.getMonth() && from.getDate()===to.getDate();
-  return sameDay ? from.toLocaleDateString() : `${from.toLocaleDateString()} – ${to.toLocaleDateString()}`;
-}
-function groupByGame(sessions){
-  const map={};
-  sessions.forEach(s=>{ if(!map[s.game]) map[s.game]=[]; map[s.game].push(s); });
-  return map;
-}
-
-// Sessions anzeigen
-async function renderSessions(){
-  sessionsEl.innerHTML="";
-  const snap=await getDocs(colRef);
-  if(snap.empty){ sessionsEl.innerHTML="<div class='small'>Keine Sessions</div>"; return; }
-
-  const sessions=snap.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>new Date(a.from)-new Date(b.from));
-  const grouped=groupByGame(sessions);
-
-  for(const [game,list] of Object.entries(grouped)){
-    const box=document.createElement("div");
-    box.className="game-box";
-    const title=document.createElement("div");
-    title.className="game-title";
-    title.innerHTML=`<span>${game}</span><span>👥 ${list.length}</span>`;
-    box.appendChild(title);
-
-    list.forEach(s=>{
-      const el=document.createElement("div");
-      el.className="session";
-      el.innerHTML=`
-        <div>
-          <div style="font-weight:600">🎮${s.name}</div>
-          <div class="small">📅 ${formatDateRange(s.from,s.to)}</div>
-          <div class="small">⏰ ${formatTimeRange(s.from,s.to)}</div>
-        </div>
-      `;
-      const del=document.createElement("button");
-      del.className="delete";
-      del.textContent="×";
-      del.onclick=async()=>{if(prompt("Admin-Key")!=="Grandia2025")return;await deleteDoc(doc(db,"sessions",s.id));renderSessions();}
-      el.appendChild(del);
-      box.appendChild(el);
-    });
-
-    sessionsEl.appendChild(box);
-  }
-}
-
-// Session speichern
-saveBtn.onclick=async()=>{
-  if(fp.selectedDates.length!==2) return alert(langSelect.value==="de"?"Start & Ende auswählen":"Select start & end");
-  const data={
-    name:nameInput.value.trim(),
-    game:gameInput.value.trim(),
-    from:toUTC(fp.selectedDates[0]),
-    to:toUTC(fp.selectedDates[1]),
-    tz:tzInput.value
-  };
-  if(!data.name||!data.game) return alert(langSelect.value==="de"?"Alle Felder ausfüllen":"Fill all fields");
-  await addDoc(colRef,data);
-  document.getElementById("sessionForm").reset();
-  tzInput.value = (autoOffset>=0?"+":"")+autoOffset;
-  renderSessions();
+  themeBtn.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
 };
 
+langSelect.onchange = () => {
+  const de = langSelect.value === "de";
+  titleEl.innerHTML = `<img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png"> ${de ? "PSN Sessionsplaner" : "PSN Session Planner"}`;
+  document.getElementById("name").placeholder = de ? "Name" : "Name";
+  document.getElementById("game").placeholder = de ? "Spiel" : "Game";
+  initFlatpickr(langSelect.value);
+};
+
+async function renderSessions() {
+  const sessionsDiv = document.getElementById("sessions");
+  sessionsDiv.innerHTML = "<p style='text-align:center;'>Lade Sessions...</p>";
+  try {
+    const snap = await getDocs(colRef);
+    if (snap.empty) { sessionsDiv.innerHTML = ""; return; }
+    const data = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    const grouped = {};
+    data.forEach(s => {
+      if (!grouped[s.game]) grouped[s.game] = {};
+      if (!grouped[s.game][s.date]) grouped[s.game][s.date] = [];
+      grouped[s.game][s.date].push(s);
+    });
+    sessionsDiv.innerHTML = "";
+    Object.keys(grouped).sort().forEach(gameName => {
+      const box = document.createElement("div");
+      box.className = "game-box";
+      box.innerHTML = `<div class="game-title">
+          <span style="font-size:18px;font-weight:600;">${gameName}</span>
+          <button class="delete-all">🗑️</button>
+        </div>`;
+      box.querySelector(".delete-all").onclick = async () => {
+        if (prompt("Admin-Key:") !== "Grandia2025") return;
+        const q = query(colRef, where("game", "==", gameName));
+        const qs = await getDocs(q);
+        for (const d of qs.docs) await deleteDoc(doc(db, "sessions", d.id));
+        renderSessions();
+      };
+
+      Object.keys(grouped[gameName]).sort((a,b) => a.split('.').reverse().join('-').localeCompare(b.split('.').reverse().join('-'))).forEach(dateStr => {
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "session-group";
+        
+        // RECHTE BUTTON-GRUPPE (👥 OBEN, X UNTEN)
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "group-actions";
+        
+        const countBadge = document.createElement("span");
+        countBadge.className = "count-badge";
+        countBadge.textContent = `👥 ${grouped[gameName][dateStr].length}`;
+        
+        const delDay = document.createElement("button");
+        delDay.className = "delete-day";
+        delDay.textContent = "×";
+        delDay.onclick = async () => {
+          if (prompt("Admin-Key:") !== "Grandia2025") return;
+          for (const s of grouped[gameName][dateStr]) await deleteDoc(doc(db, "sessions", s.id));
+          renderSessions();
+        };
+
+        actionsDiv.appendChild(countBadge);
+        actionsDiv.appendChild(delDay);
+        groupDiv.appendChild(actionsDiv);
+
+        // SORTIERUNG UND ITEMS
+        grouped[gameName][dateStr].sort((a, b) => {
+          if (a.from !== b.from) return a.from.localeCompare(b.from);
+          return a.to.localeCompare(b.to);
+        }).forEach(s => {
+          const item = document.createElement("div");
+          item.className = "session-item";
+          item.innerHTML = `<div class="player-name">🎮 ${s.name}</div><div class="date">📅 ${s.date}</div><div class="time">⏰ ${s.from} – ${s.to}</div>`;
+          const delBtn = document.createElement("button"); delBtn.className = "delete"; delBtn.textContent = "×";
+          delBtn.onclick = async () => {
+            if (prompt("Admin-Key:") !== "Grandia2025") return;
+            await deleteDoc(doc(db, "sessions", s.id));
+            renderSessions();
+          };
+          item.appendChild(delBtn);
+          groupDiv.appendChild(item);
+        });
+        box.appendChild(groupDiv);
+      });
+      sessionsDiv.appendChild(box);
+    });
+  } catch (e) { console.error(e); }
+}
+
+saveBtn.onclick = async () => {
+  const de = langSelect.value === "de";
+  const nameInput = document.getElementById("name");
+  const gameInput = document.getElementById("game");
+  const tzInput = document.getElementById("tzoffset");
+  if (fp.selectedDates.length !== 2) return alert(de ? "Bitte Zeitraum wählen" : "Please select range");
+  if (!nameInput.value.trim() || !gameInput.value.trim()) return alert(de ? "Bitte Name und Spiel eingeben" : "Missing info");
+  const [start, end] = fp.selectedDates;
+  let cur = new Date(start); cur.setHours(0,0,0,0);
+  let last = new Date(end); last.setHours(0,0,0,0);
+  while (cur <= last) {
+    await addDoc(colRef, {
+      name: nameInput.value.trim(), game: gameInput.value.trim(), date: cur.toLocaleDateString("de-DE"),
+      from: start.toTimeString().slice(0, 5), to: end.toTimeString().slice(0, 5), tz: tzInput.value.trim()
+    });
+    cur.setDate(cur.getDate() + 1);
+  }
+  nameInput.value = ""; gameInput.value = ""; fp.clear(); renderSessions();
+};
 renderSessions();
 </script>
 </body>
