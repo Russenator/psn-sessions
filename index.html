@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PSN Sessionsplaner — World Sync</title>
+<title>PSN Sessionsplaner — World Sync Pro</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -106,9 +106,9 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
   </div>
   <div class="card-form">
     <form class="form-grid" onsubmit="return false;">
-      <input id="name" class="input" placeholder="Name">
-      <input id="game" class="input" placeholder="Spiel">
-      <div class="flatpickr-wrapper" id="fp-container"><input id="dateRange" class="input" placeholder="Datum & Zeit"></div>
+      <input id="name" class="input">
+      <input id="game" class="input">
+      <div class="flatpickr-wrapper" id="fp-container"></div>
       <button id="saveBtn">💾</button>
     </form>
   </div>
@@ -130,16 +130,23 @@ const colRef = collection(db, "sessions");
 let fp;
 
 function initFlatpickr(lang = 'de') {
+  const isDe = lang === 'de';
+  
+  // Übersetze Placeholders
+  document.getElementById("name").placeholder = isDe ? "Name" : "Name";
+  document.getElementById("game").placeholder = isDe ? "Spiel" : "Game";
+  
   const container = document.getElementById('fp-container');
-  const ph = lang === 'de' ? "Datum & Zeit" : "Date & Time";
+  const ph = isDe ? "Datum & Zeit" : "Date & Time";
   container.innerHTML = `<input id="dateRange" class="input" placeholder="${ph}">`;
+  
   fp = flatpickr("#dateRange", { 
-    locale: lang === 'de' ? flatpickr.l10ns.de : "default", 
+    locale: isDe ? flatpickr.l10ns.de : "default", 
     enableTime: true, 
-    time_24hr: lang === 'de', // 24h für DE, 12h für EN
+    time_24hr: isDe,
     mode: "range", 
     altInput: true, 
-    altFormat: lang === 'de' ? "d.m.Y H:i" : "m/d/Y h:i K" // h:i K zeigt AM/PM
+    altFormat: isDe ? "d.m.Y H:i" : "m/d/Y h:i K"
   });
 }
 
@@ -171,16 +178,12 @@ async function renderSessions() {
       if (s.startUTC) {
         const localStart = new Date(s.startUTC);
         const localEnd = new Date(s.endUTC);
-        
         displayDate = localStart.toLocaleDateString(isDe ? "de-DE" : "en-US");
-        
-        // AM/PM Logik für die Anzeige
         displayTime = localStart.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', {
           hour: '2-digit', minute: '2-digit', hour12: !isDe
         }) + " – " + localEnd.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', {
           hour: '2-digit', minute: '2-digit', hour12: !isDe
         });
-
         sortKey = localStart.getTime();
       } else {
         displayDate = s.date || "---";
@@ -262,17 +265,10 @@ saveBtn.onclick = async () => {
     const sUTC = new Date(cur);
     const eUTC = new Date(cur);
     eUTC.setHours(end.getHours(), end.getMinutes());
-
-    await addDoc(colRef, {
-      name: nameVal,
-      game: gameVal,
-      startUTC: sUTC.toISOString(),
-      endUTC: eUTC.toISOString()
-    });
+    await addDoc(colRef, { name: nameVal, game: gameVal, startUTC: sUTC.toISOString(), endUTC: eUTC.toISOString() });
     cur.setDate(cur.getDate() + 1);
     if(start.toLocaleDateString() === end.toLocaleDateString()) break;
   }
-  
   document.getElementById("name").value = ""; 
   document.getElementById("game").value = ""; 
   fp.clear(); 
