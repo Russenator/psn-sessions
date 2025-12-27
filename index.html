@@ -104,6 +104,7 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 
 .player-name{ font-weight:600; font-size:14px; margin-bottom: 2px; color: #000000; }
 .date, .time{ font-size:13px; color: #000000; font-weight: 500; }
+.time { white-space: nowrap; } /* Verhindert Zeilenumbruch bei der Uhrzeit */
 
 .delete, .delete-day{ background:#ef4444; color:#fff; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 .delete { position:absolute; right:6px; top:50%; transform: translateY(-50%); width:20px; height:20px; border-radius:50%; font-size:11px; }
@@ -120,7 +121,6 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 .dark .player-name { color: #1e90ff; } 
 .dark .date, .dark .time, .dark .title, .dark #langSelect { color: #ffffff; }
 
-/* Platzhalterfarbe im Darkmode auf Weiß setzen */
 .dark .input::placeholder { color: #ffffff; opacity: 1; }
 .dark .input::-webkit-input-placeholder { color: #ffffff; }
 .dark .input::-moz-placeholder { color: #ffffff; opacity: 1; }
@@ -216,8 +216,16 @@ async function renderSessions() {
         const localEnd = new Date(s.endUTC);
         dateKey = localStart.toISOString().slice(0,10);
         displayDate = localStart.toLocaleDateString(isDe ? "de-DE" : "en-US");
+        
+        // Zeit generieren
         displayTime = localStart.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', { hour:'2-digit',minute:'2-digit', hour12:!isDe }) 
                     + " – " + localEnd.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', { hour:'2-digit',minute:'2-digit', hour12:!isDe });
+        
+        // Optimierung für Englisch: " AM" zu "am", " PM" zu "pm" und Leerzeichen weg
+        if (!isDe) {
+          displayTime = displayTime.replace(/\sAM/g, 'am').replace(/\sPM/g, 'pm');
+        }
+
         sortKey = localStart.getTime();
       } else {
         dateKey = "---";
