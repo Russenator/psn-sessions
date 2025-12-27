@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PSN Sessionsplaner — World Sync Pro</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
 
@@ -84,6 +84,7 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 .delete{ position:absolute; right:6px; top:50%; transform: translateY(-50%); width:20px; height:20px; border-radius:50%; font-size:11px; }
 .delete-day{ width:28px; height:28px; border-radius:50%; background:#dc2626; font-size: 18px; }
 
+/* DARKMODE */
 .dark{ --bg:#0b1220; --card:#1e293b; --text:#ffffff; --border:#334155; --muted:#ffffff; }
 .dark .sticky-top-area { background: #0b1220; }
 .dark .game-box{ background:#161f2e !important; border: 1px solid #334155 !important; }
@@ -97,7 +98,7 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 
 <div class="sticky-top-area">
   <div class="header">
-    <div class="title" id="titleEl"><img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png" alt="PSN Logo" /> PSN Planer</div>
+    <div class="title" id="titleEl"><img src="https://www.clipartmax.com/png/small/120-1209857_free-psn-code-generator-logo-playstation-network.png"> PSN Planer</div>
     <div class="header-controls">
       <select id="langSelect"><option value="de">Deutsch</option><option value="en">English</option></select>
       <button id="themeBtn">☀️</button>
@@ -105,8 +106,8 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
   </div>
   <div class="card-form">
     <form class="form-grid" onsubmit="return false;">
-      <input id="name" class="input" placeholder="Name" />
-      <input id="game" class="input" placeholder="Spiel" />
+      <input id="name" class="input">
+      <input id="game" class="input">
       <div class="flatpickr-wrapper" id="fp-container"></div>
       <button id="saveBtn">💾</button>
     </form>
@@ -119,53 +120,35 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU",
-  authDomain: "psn-planen.firebaseapp.com",
-  projectId: "psn-planen"
-};
+const firebaseConfig = { apiKey: "AIzaSyBu7TsiZAGJ7kQ8piqfrsyUFalEOM8eSGU", authDomain: "psn-planen.firebaseapp.com", projectId: "psn-planen" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colRef = collection(db, "sessions");
 
 let fp;
 
-function initFlatpickr(lang = "de") {
-  const isDe = lang === "de";
-
+function initFlatpickr(lang = 'de') {
+  const isDe = lang === 'de';
   document.getElementById("name").placeholder = isDe ? "Name" : "Name";
   document.getElementById("game").placeholder = isDe ? "Spiel" : "Game";
-
-  const container = document.getElementById("fp-container");
+  
+  const container = document.getElementById('fp-container');
   const ph = isDe ? "Datum & Zeit" : "Date & Time";
   container.innerHTML = `<input id="dateRange" class="input" placeholder="${ph}">`;
-
-  fp = flatpickr("#dateRange", {
-    locale: isDe ? flatpickr.l10ns.de : "default",
-    enableTime: true,
+  
+  fp = flatpickr("#dateRange", { 
+    locale: isDe ? flatpickr.l10ns.de : "default", 
+    enableTime: true, 
     time_24hr: isDe,
-    mode: "range",
-    altInput: true,
+    mode: "range", 
+    altInput: true, 
     altFormat: isDe ? "d.m.Y H:i" : "m/d/Y h:i K"
   });
 }
 
 const userLang = navigator.language.startsWith("en") ? "en" : "de";
-const langSelect = document.getElementById("langSelect");
-const themeBtn = document.getElementById("themeBtn");
-const saveBtn = document.getElementById("saveBtn");
-
 langSelect.value = userLang;
 initFlatpickr(userLang);
 
@@ -174,56 +157,59 @@ themeBtn.onclick = () => {
   themeBtn.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
 };
 
-langSelect.onchange = () => {
-  initFlatpickr(langSelect.value);
-  renderSessions();
-};
-
-function parseDateStr(str, isDe) {
-  if (isDe) {
-    const parts = str.split('.');
-    if (parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
-  } else {
-    const parts = str.split('/');
-    if (parts.length === 3) return new Date(parts[2], parts[0]-1, parts[1]);
-  }
-  return new Date(str);
-}
+langSelect.onchange = () => { initFlatpickr(langSelect.value); renderSessions(); };
 
 async function renderSessions() {
   const sessionsDiv = document.getElementById("sessions");
   const lang = langSelect.value;
   const isDe = lang === "de";
   sessionsDiv.innerHTML = `<p style="text-align:center;">${isDe ? "Lade..." : "Loading..."}</p>`;
-
+  
   try {
     const snap = await getDocs(colRef);
     if (snap.empty) { sessionsDiv.innerHTML = ""; return; }
-
+    
     const data = snap.docs.map(d => {
       const s = d.data();
-      let displayTime, displayDate, sortKey;
+      let displayTime, displayDate, sortKey, dateKey;
 
       if (s.startUTC) {
         const localStart = new Date(s.startUTC);
         const localEnd = new Date(s.endUTC);
+        dateKey = localStart.toISOString().slice(0,10);
         displayDate = localStart.toLocaleDateString(isDe ? "de-DE" : "en-US");
-        displayTime = localStart.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', {hour:'2-digit',minute:'2-digit',hour12:!isDe})
-          + " – " + localEnd.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', {hour:'2-digit',minute:'2-digit',hour12:!isDe});
+        displayTime = localStart.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', { hour:'2-digit',minute:'2-digit', hour12:!isDe }) 
+                    + " – " + localEnd.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', { hour:'2-digit',minute:'2-digit', hour12:!isDe });
         sortKey = localStart.getTime();
+      } else if (s.date) {
+        const parts = s.date.split(".");
+        if(parts.length === 3){
+          const d = new Date(parts[2], parts[1]-1, parts[0]);
+          dateKey = d.toISOString().slice(0,10);
+          displayDate = d.toLocaleDateString(isDe ? "de-DE" : "en-US");
+          displayTime = `${s.from} – ${s.to}`;
+          sortKey = d.getTime();
+        } else {
+          dateKey = "---";
+          displayDate = "---";
+          displayTime = `${s.from} – ${s.to}`;
+          sortKey = 0;
+        }
       } else {
+        dateKey = "---";
         displayDate = s.date || "---";
         displayTime = `${s.from} – ${s.to}`;
         sortKey = 0;
       }
-      return { ...s, id: d.id, displayDate, displayTime, sortKey };
+
+      return { ...s, id: d.id, displayDate, displayTime, sortKey, dateKey };
     });
 
     const grouped = {};
     data.forEach(s => {
       if (!grouped[s.game]) grouped[s.game] = {};
-      if (!grouped[s.game][s.displayDate]) grouped[s.game][s.displayDate] = [];
-      grouped[s.game][s.displayDate].push(s);
+      if (!grouped[s.game][s.dateKey]) grouped[s.game][s.dateKey] = [];
+      grouped[s.game][s.dateKey].push(s);
     });
 
     sessionsDiv.innerHTML = "";
@@ -231,81 +217,82 @@ async function renderSessions() {
       const box = document.createElement("div");
       box.className = "game-box";
       box.innerHTML = `<div class="game-title"><b>${gameName}</b><button class="delete-all">🗑️</button></div>`;
-
+      
       box.querySelector(".delete-all").onclick = async () => {
         if (prompt("Admin-Key:") !== "Grandia2025") return;
-        const q = query(colRef, where("game","==",gameName));
+        const q = query(colRef, where("game", "==", gameName));
         const qs = await getDocs(q);
-        for (const d of qs.docs) await deleteDoc(doc(db,"sessions",d.id));
+        for (const d of qs.docs) await deleteDoc(doc(db, "sessions", d.id));
         renderSessions();
       };
 
-      Object.keys(grouped[gameName])
-        .sort((a,b)=>parseDateStr(a,isDe)-parseDateStr(b,isDe))
-        .forEach(dateStr=>{
-          const groupDiv=document.createElement("div");
-          groupDiv.className="session-group";
+      Object.keys(grouped[gameName]).sort().forEach(dateKey => {
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "session-group";
+        
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "group-actions";
+        actionsDiv.innerHTML = `<span class="count-badge">👥 ${grouped[gameName][dateKey].length}</span>`;
+        
+        const delDay = document.createElement("button");
+        delDay.className = "delete-day";
+        delDay.textContent = "×";
+        delDay.onclick = async () => {
+          if (prompt("Admin-Key:") !== "Grandia2025") return;
+          for (const s of grouped[gameName][dateKey]) await deleteDoc(doc(db, "sessions", s.id));
+          renderSessions();
+        };
+        actionsDiv.appendChild(delDay);
+        groupDiv.appendChild(actionsDiv);
 
-          const actionsDiv=document.createElement("div");
-          actionsDiv.className="group-actions";
-          actionsDiv.innerHTML=`<span class="count-badge">👥 ${grouped[gameName][dateStr].length}</span>`;
-
-          const delDay=document.createElement("button");
-          delDay.className="delete-day";
-          delDay.textContent="×";
-          delDay.onclick=async ()=>{
-            if(prompt("Admin-Key:")!=="Grandia2025") return;
-            for(const s of grouped[gameName][dateStr]) await deleteDoc(doc(db,"sessions",s.id));
-            renderSessions();
-          };
-          actionsDiv.appendChild(delDay);
-          groupDiv.appendChild(actionsDiv);
-
-          grouped[gameName][dateStr]
-            .sort((a,b)=>a.sortKey-b.sortKey)
-            .forEach(s=>{
-              const item=document.createElement("div");
-              item.className="session-item";
-              item.innerHTML=`<div>🎮 <b>${s.name}</b></div><div>📅 ${s.displayDate}</div><div>⏰ ${s.displayTime}</div>`;
-              const delBtn=document.createElement("button"); delBtn.className="delete"; delBtn.textContent="×";
-              delBtn.onclick=async ()=>{
-                if(prompt("Admin-Key:")!=="Grandia2025") return;
-                await deleteDoc(doc(db,"sessions",s.id));
-                renderSessions();
-              };
-              item.appendChild(delBtn);
-              groupDiv.appendChild(item);
-            });
-          box.appendChild(groupDiv);
+        grouped[gameName][dateKey]
+          .sort((a, b) => {
+            if (a.sortKey !== b.sortKey) return a.sortKey - b.sortKey;
+            // nach Endzeit sortieren, wenn Startzeiten gleich sind
+            if(a.endUTC && b.endUTC) return new Date(a.endUTC).getTime() - new Date(b.endUTC).getTime();
+            return 0;
+          })
+          .forEach(s => {
+            const item = document.createElement("div");
+            item.className = "session-item";
+            item.innerHTML = `<div>🎮 <b>${s.name}</b></div><div>📅 ${s.displayDate}</div><div>⏰ ${s.displayTime}</div>`;
+            const delBtn = document.createElement("button"); delBtn.className = "delete"; delBtn.textContent = "×";
+            delBtn.onclick = async () => {
+              if (prompt("Admin-Key:") !== "Grandia2025") return;
+              await deleteDoc(doc(db, "sessions", s.id));
+              renderSessions();
+            };
+            item.appendChild(delBtn);
+            groupDiv.appendChild(item);
         });
+        box.appendChild(groupDiv);
+      });
       sessionsDiv.appendChild(box);
     });
-
-  } catch(e){console.error(e);}
+  } catch (e) { console.error(e); }
 }
 
-saveBtn.onclick=async()=>{
-  if(fp.selectedDates.length!==2) return;
-  const [start,end]=fp.selectedDates;
-  const nameVal=document.getElementById("name").value.trim();
-  const gameVal=document.getElementById("game").value.trim();
-  if(!nameVal||!gameVal) return;
+saveBtn.onclick = async () => {
+  if (fp.selectedDates.length !== 2) return;
+  const [start, end] = fp.selectedDates;
+  const nameVal = document.getElementById("name").value.trim();
+  const gameVal = document.getElementById("game").value.trim();
+  if (!nameVal || !gameVal) return;
 
-  let cur=new Date(start);
-  while(cur<=end){
-    const sUTC=new Date(cur);
-    const eUTC=new Date(cur);
-    eUTC.setHours(end.getHours(),end.getMinutes());
-    await addDoc(colRef,{name:nameVal,game:gameVal,startUTC:sUTC.toISOString(),endUTC:eUTC.toISOString()});
-    cur.setDate(cur.getDate()+1);
-    if(start.toLocaleDateString()===end.toLocaleDateString()) break;
+  let cur = new Date(start);
+  while (cur <= end) {
+    const sUTC = new Date(cur);
+    const eUTC = new Date(cur);
+    eUTC.setHours(end.getHours(), end.getMinutes());
+    await addDoc(colRef, { name: nameVal, game: gameVal, startUTC: sUTC.toISOString(), endUTC: eUTC.toISOString() });
+    cur.setDate(cur.getDate() + 1);
+    if(start.toLocaleDateString() === end.toLocaleDateString()) break;
   }
-  document.getElementById("name").value="";
-  document.getElementById("game").value="";
-  fp.clear();
+  document.getElementById("name").value = ""; 
+  document.getElementById("game").value = ""; 
+  fp.clear(); 
   renderSessions();
 };
-
 renderSessions();
 </script>
 </body>
