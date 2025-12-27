@@ -12,7 +12,12 @@
 
 <style>
 :root{
-  --bg:#f4f8ff; --card:#ffffff; --text:#0f172a; --accent:#4a8bff; --muted:#6b7280; --border:#e5e7eb;
+  --bg:#f4f8ff; 
+  --card:#ffffff; 
+  --text:#000000; 
+  --accent:#4a8bff; 
+  --border:#e5e7eb;
+  --ps-blue: #dbeafe; 
 }
 body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:16px; color:var(--text); font-size: 14px; }
 
@@ -24,11 +29,11 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 .container { max-width:880px; margin:0 auto; padding-top: 230px; }
 
 .header{ display:flex; align-items:center; justify-content: space-between; padding:10px 16px; background:var(--card); border-radius:14px; margin-bottom:12px; box-shadow:0 4px 16px rgba(0,0,0,.08); }
-.title{ font-size:22px; font-weight:600; display:flex; align-items:center; gap:10px; }
+.title{ font-size:22px; font-weight:600; display:flex; align-items:center; gap:10px; color: #000000; }
 .title img{ width:28px; height:28px; }
 
 .header-controls { display: flex; gap: 8px; align-items: center; }
-#langSelect, #themeBtn{ padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color: inherit; cursor:pointer; height: 36px;}
+#langSelect, #themeBtn{ padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color: #000000; cursor:pointer; height: 36px;}
 
 .card-form { background:var(--card); border-radius:14px; padding:16px; margin-bottom:16px; box-shadow:0 6px 20px rgba(0,0,0,.06); }
 
@@ -44,10 +49,16 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
 }
 #saveBtn:active { transform: scale(0.95); }
 
-.input{ padding:10px; border-radius:10px; border:1px solid var(--border); width: 100%; box-sizing: border-box; min-height: 40px; background: var(--card); color: inherit; outline: none; }
+.input{ padding:10px; border-radius:10px; border:1px solid var(--border); width: 100%; box-sizing: border-box; min-height: 40px; background: var(--card); color: #000000; outline: none; }
 
-.game-box{ background:#eef4ff; border-radius:14px; padding:12px; margin-bottom:20px; border: 1px solid transparent; }
-.game-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 2px 8px; }
+.game-box{ 
+  background: var(--ps-blue); 
+  border-radius:14px; 
+  padding:12px; 
+  margin-bottom:20px; 
+  border: 1px solid #bfdbfe; 
+}
+.game-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 2px 8px; font-size: 18px; color: #000000; font-weight: 600; }
 
 .delete-all { background:#ef4444; color:#fff; border:none; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
@@ -56,9 +67,9 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
   grid-template-columns: repeat(auto-fill, 180px); 
   gap: 10px; 
   padding: 12px 60px 12px 12px; 
-  background: #fff; 
+  background: #ffffff; 
   border-radius: 12px; 
-  border: 1px solid var(--border); 
+  border: 1px solid #e2e8f0; 
   position: relative;
   margin-bottom: 10px; 
 }
@@ -74,24 +85,47 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
   gap: 8px;
 }
 
-.count-badge { background:var(--accent); color:#fff; padding:4px 8px; border-radius:30px; font-size:11px; font-weight:bold; }
+.count-badge { background:#4a8bff; color:#fff; padding:4px 8px; border-radius:30px; font-size:11px; font-weight:bold; }
 
-.session-item { background: linear-gradient(180deg, #f5f9ff, #eaf1ff); border-radius: 10px; padding: 10px 35px 10px 10px; border: 1px solid #dbe5ff; position: relative; min-height: 80px; width: 180px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
+.session-item { 
+  background: var(--ps-blue); 
+  color: #000000; 
+  border-radius: 10px; 
+  padding: 10px 35px 10px 10px; 
+  border: 1px solid #bfdbfe; 
+  position: relative; 
+  min-height: 80px; 
+  width: 180px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  box-sizing: border-box; 
+}
 
-.player-name{ font-weight:600; font-size:14px; margin-bottom: 2px; }
-.date, .time{ font-size:13px; color:var(--muted); font-weight: 500; }
+.player-name{ font-weight:600; font-size:14px; margin-bottom: 2px; color: #000000; }
+.date, .time{ font-size:13px; color: #000000; font-weight: 500; }
+
 .delete, .delete-day{ background:#ef4444; color:#fff; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.delete{ position:absolute; right:6px; top:50%; transform: translateY(-50%); width:20px; height:20px; border-radius:50%; font-size:11px; }
+.delete { position:absolute; right:6px; top:50%; transform: translateY(-50%); width:20px; height:20px; border-radius:50%; font-size:11px; }
 .delete-day{ width:28px; height:28px; border-radius:50%; background:#dc2626; font-size: 18px; }
 
 /* DARKMODE */
-.dark{ --bg:#0b1220; --card:#1e293b; --text:#ffffff; --border:#334155; --muted:#ffffff; }
+.dark{ --bg:#0b1220; --card:#1e293b; --text:#ffffff; --border:#334155; }
 .dark .sticky-top-area { background: #0b1220; }
 .dark .game-box{ background:#161f2e !important; border: 1px solid #334155 !important; }
+.dark .game-title { color: #ffffff; }
 .dark .session-group{ background:#0f172a; border-color: #1e293b; }
 .dark .input { background: linear-gradient(180deg, #334155, #1e293b) !important; color: #ffffff !important; border-color: #475569 !important; }
-.dark .input::placeholder { color: rgba(255, 255, 255, 0.8) !important; }
-.dark .session-item { background: linear-gradient(180deg, #334155, #1e293b); border-color:#475569; }
+.dark .session-item { background: #1e293b; border-color:#475569; color: #ffffff; }
+.dark .player-name { color: #1e90ff; } 
+.dark .date, .dark .time, .dark .title, .dark #langSelect { color: #ffffff; }
+
+/* Platzhalterfarbe im Darkmode auf Weiß setzen */
+.dark .input::placeholder { color: #ffffff; opacity: 1; }
+.dark .input::-webkit-input-placeholder { color: #ffffff; }
+.dark .input::-moz-placeholder { color: #ffffff; opacity: 1; }
+.dark .input:-ms-input-placeholder { color: #ffffff; }
+
 </style>
 </head>
 <body>
@@ -149,6 +183,10 @@ function initFlatpickr(lang = 'de') {
 }
 
 const userLang = navigator.language.startsWith("en") ? "en" : "de";
+const langSelect = document.getElementById("langSelect");
+const themeBtn = document.getElementById("themeBtn");
+const saveBtn = document.getElementById("saveBtn");
+
 langSelect.value = userLang;
 initFlatpickr(userLang);
 
@@ -181,27 +219,12 @@ async function renderSessions() {
         displayTime = localStart.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', { hour:'2-digit',minute:'2-digit', hour12:!isDe }) 
                     + " – " + localEnd.toLocaleTimeString(isDe ? 'de-DE' : 'en-US', { hour:'2-digit',minute:'2-digit', hour12:!isDe });
         sortKey = localStart.getTime();
-      } else if (s.date) {
-        const parts = s.date.split(".");
-        if(parts.length === 3){
-          const d = new Date(parts[2], parts[1]-1, parts[0]);
-          dateKey = d.toISOString().slice(0,10);
-          displayDate = d.toLocaleDateString(isDe ? "de-DE" : "en-US");
-          displayTime = `${s.from} – ${s.to}`;
-          sortKey = d.getTime();
-        } else {
-          dateKey = "---";
-          displayDate = "---";
-          displayTime = `${s.from} – ${s.to}`;
-          sortKey = 0;
-        }
       } else {
         dateKey = "---";
         displayDate = s.date || "---";
         displayTime = `${s.from} – ${s.to}`;
         sortKey = 0;
       }
-
       return { ...s, id: d.id, displayDate, displayTime, sortKey, dateKey };
     });
 
@@ -246,16 +269,11 @@ async function renderSessions() {
         groupDiv.appendChild(actionsDiv);
 
         grouped[gameName][dateKey]
-          .sort((a, b) => {
-            if (a.sortKey !== b.sortKey) return a.sortKey - b.sortKey;
-            // nach Endzeit sortieren, wenn Startzeiten gleich sind
-            if(a.endUTC && b.endUTC) return new Date(a.endUTC).getTime() - new Date(b.endUTC).getTime();
-            return 0;
-          })
+          .sort((a, b) => a.sortKey - b.sortKey)
           .forEach(s => {
             const item = document.createElement("div");
             item.className = "session-item";
-            item.innerHTML = `<div>🎮 <b>${s.name}</b></div><div>📅 ${s.displayDate}</div><div>⏰ ${s.displayTime}</div>`;
+            item.innerHTML = `<div>🎮 <b class="player-name">${s.name}</b></div><div class="date">📅 ${s.displayDate}</div><div class="time">⏰ ${s.displayTime}</div>`;
             const delBtn = document.createElement("button"); delBtn.className = "delete"; delBtn.textContent = "×";
             delBtn.onclick = async () => {
               if (prompt("Admin-Key:") !== "Grandia2025") return;
