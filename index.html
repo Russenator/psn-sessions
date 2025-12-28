@@ -201,7 +201,6 @@ async function renderSessions() {
   const sessionsDiv = document.getElementById("sessions");
   const lang = langSelect.value;
   const isDe = lang === "de";
-  sessionsDiv.innerHTML = `<p style="text-align:center;">${isDe ? "Lade..." : "Loading..."}</p>`;
   
   try {
     const snap = await getDocs(colRef);
