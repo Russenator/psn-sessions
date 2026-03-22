@@ -25,6 +25,27 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
   position: fixed; top: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 880px; padding: 16px 16px 0 16px;
   background: var(--bg); z-index: 1000; box-sizing: border-box;
+  .inline-info {
+  display: block;
+  text-align: center;
+  font-size: 15px;
+  margin: -6px 0;
+  
+  background: none;     /* ❌ kein Kasten */
+  border: none;         /* ❌ kein Rahmen */
+  padding: 0;           /* ❌ kein Innenabstand */
+  
+  color: #dc2626;       /* 🔴 roter Text */
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 1;           /* Ausgangszustand */
+  transition: opacity 0.5s ease; /* optional auch hier */
+}
+
+.dark .inline-info {
+  background: rgba(74,139,255,0.15);
+  color: #cbd5f5;
+}
 }
 .container { max-width:880px; margin:0 auto; padding-top: 230px; }
 
@@ -146,9 +167,15 @@ body{ font-family:"Inter", sans-serif; background:var(--bg); margin:0; padding:1
       <button id="saveBtn">💾</button>
     </form>
   </div>
+  <!-- 📌 ANGEPINNTE INFO -->
+  <div class="inline-info" onclick="hideInfo(this)">
+  ℹ️ <strong>Server Shutdown: 28.04. - Plants vs. Zombies Garden Warfare (PS3)</strong>
+</div>
 </div>
 
 <div class="container">
+<div class="info-text">
+  </div>    
   <div id="sessions"></div>
 </div>
 
@@ -319,6 +346,13 @@ saveBtn.onclick = async () => {
   renderSessions();
 };
 renderSessions();
+</script>
+<script>
+function hideInfo(el) {
+  el.style.transition = "opacity 0.5s ease";
+  el.style.opacity = 0;
+  setTimeout(() => el.style.display = "none", 500);
+}
 </script>
 </body>
 </html>
